@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "566221554033",
+    "project_id": "petbest-b4a6b",
+    "storage_bucket": "petbest-b4a6b.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:566221554033:android:2d7642057177d7b8abf6d0",
+        "android_client_info": {
+          "package_name": "com.specikman.petbest"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "566221554033-vpkdto9sc8oj8j07g5i88ijf3uu3oq6l.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.specikman.petbest",
+            "certificate_hash": "df4e73dedb7b274068a05588f4ce34a7a6ae2bca"
+          }
+        },
+        {
+          "client_id": "566221554033-kgl1ohb1i311ssnh0n5fchh545me34if.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA5L84WU_EU83ZDb5alXAvdmLzwW9QZL_A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "566221554033-kgl1ohb1i311ssnh0n5fchh545me34if.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

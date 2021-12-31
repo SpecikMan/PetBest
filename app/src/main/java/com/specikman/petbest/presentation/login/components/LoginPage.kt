@@ -1,7 +1,11 @@
 package com.specikman.petbest.presentation.login.components
 
+import android.app.Activity
 import android.content.Context
+import android.util.Log
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -24,20 +28,33 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.firebase.auth.FirebaseAuth
 import com.specikman.petbest.R
 import com.specikman.petbest.presentation.components.google_button.GoogleButton
+import com.specikman.petbest.presentation.login.components.google_login.utils.getGoogleSignInClient
 import com.specikman.petbest.ui.theme.primaryColor
 import com.specikman.petbest.ui.theme.whiteBackground
 
+private const val REQUEST_CODE_SIGN_IN = 0
 @Composable
 fun LoginPage(
     navController: NavController,
     context: Context,
-    viewModel: LoginViewModel = hiltViewModel()
+    viewModel: LoginViewModel = hiltViewModel(),
 ) {
     val auth: FirebaseAuth = FirebaseAuth.getInstance()
+    val authResultLauncher =
+        rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult()) {
+            if(it.resultCode == Activity.RESULT_OK){
+                val account = GoogleSignIn.getSignedInAccountFromIntent(it.data).result
+                account?.let { googleAccount ->
+                    viewModel.googleAuthForFirebase(account = googleAccount , context = context)
+                } ?: Toast.makeText(context , "Login with Google Failed Inside",Toast.LENGTH_LONG).show()
+            } else {
+                Toast.makeText(context , "Login with Google Failed",Toast.LENGTH_LONG).show()
+            }
+        }
 
     val state = viewModel.state.value
 
@@ -172,6 +189,9 @@ fun LoginPage(
                         loadingText = "Đang xử lý",
                         //Event Click Google
                         onClicked = {
+                            getGoogleSignInClient(context = context).signInIntent.also{
+                                authResultLauncher.launch(it)
+                            }
                         }
                     )
                     Spacer(modifier = Modifier.padding(10.dp))

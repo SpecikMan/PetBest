@@ -5,4 +5,8 @@ interface LoginRepository {
         email: String,
         password: String
     )
+
+    suspend fun sendForgotPasswordEmail(
+        email: String
+    )
 }

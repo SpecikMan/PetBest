@@ -33,6 +33,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.specikman.petbest.R
 import com.specikman.petbest.presentation.components.google_button.GoogleButton
 import com.specikman.petbest.presentation.login.components.google_login.utils.getGoogleSignInClient
+import com.specikman.petbest.presentation.navigation.Screen
 import com.specikman.petbest.ui.theme.primaryColor
 import com.specikman.petbest.ui.theme.whiteBackground
 
@@ -49,8 +50,8 @@ fun LoginPage(
             if(it.resultCode == Activity.RESULT_OK){
                 val account = GoogleSignIn.getSignedInAccountFromIntent(it.data).result
                 account?.let { googleAccount ->
-                    viewModel.googleAuthForFirebase(account = googleAccount , context = context)
-                } ?: Toast.makeText(context , "Login with Google Failed Inside",Toast.LENGTH_LONG).show()
+                    viewModel.googleAuthForFirebase(account = googleAccount , context = context, navController = navController)
+                }
             } else {
                 Toast.makeText(context , "Login with Google Failed",Toast.LENGTH_LONG).show()
             }
@@ -199,8 +200,7 @@ fun LoginPage(
                         Text(
                             text = "Tạo tài khoản mới\t",
                             modifier = Modifier.clickable(onClick = {
-                                navController.navigate("register_page") {
-                                    popUpTo("login_page")
+                                navController.navigate(Screen.RegisterScreen.route) {
                                     launchSingleTop = true
                                 }
                             })
@@ -208,8 +208,7 @@ fun LoginPage(
                         Text(
                             text = "\tKhôi phục tài khoản",
                             modifier = Modifier.clickable(onClick = {
-                                navController.navigate("register_page") {
-                                    popUpTo("login_page")
+                                navController.navigate(Screen.ForgotPasswordScreen.route) {
                                     launchSingleTop = true
                                 }
                             })

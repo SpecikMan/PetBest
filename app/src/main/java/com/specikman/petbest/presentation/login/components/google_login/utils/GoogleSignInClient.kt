@@ -10,6 +10,7 @@ fun getGoogleSignInClient(context: Context): GoogleSignInClient{
     val signInOptions = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
         .requestIdToken(context.getString(R.string.client_id))
         .requestEmail()
+        .requestProfile()
         .build()
     return GoogleSignIn.getClient(context, signInOptions)
 }

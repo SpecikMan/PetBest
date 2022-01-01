@@ -1,5 +1,6 @@
 package com.specikman.petbest.presentation.register.components
 
+import android.content.Context
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
@@ -24,9 +25,10 @@ class RegisterViewModel @Inject constructor(
         email: String,
         password: String,
         phone: String,
-        name: String
+        name: String,
+        context: Context
     ) {
-        registerUseCase(email = email, password = password, phone = phone, name = name).onEach { result ->
+        registerUseCase(email = email, password = password, phone = phone, name = name, context = context).onEach { result ->
             when (result) {
                 is Resource.Success -> {
                     _state.value = RegisterState(data = result.data ?: "")

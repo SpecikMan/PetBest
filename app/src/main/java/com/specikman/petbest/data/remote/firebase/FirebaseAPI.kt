@@ -3,7 +3,10 @@ package com.specikman.petbest.data.remote.firebase
 
 import android.content.res.Resources
 import android.util.Log
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.preferencesDataStore
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.api.Context
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
@@ -16,6 +19,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
+import java.util.prefs.Preferences
 
 class FirebaseAPI {
     //
@@ -29,7 +34,6 @@ class FirebaseAPI {
         password: String,
     ) {
         auth = FirebaseAuth.getInstance()
-
         if (email.isNotEmpty() && password.isNotEmpty()) {
             CoroutineScope(Dispatchers.IO).launch {
                 try {
@@ -75,5 +79,21 @@ class FirebaseAPI {
         } catch (e: Exception) {
             e.printStackTrace()
         }
+    }
+
+    suspend fun sendForgotPasswordEmail(
+        email : String
+    ){
+        auth = FirebaseAuth.getInstance()
+        if(email.isNotBlank()){
+            CoroutineScope(Dispatchers.IO).launch {
+                try{
+                    auth.sendPasswordResetEmail(email)
+                }catch(e: Exception){
+                    e.printStackTrace()
+                }
+            }
+        }
+
     }
 }

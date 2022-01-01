@@ -11,4 +11,7 @@ class LoginRepositoryImpl @Inject constructor(
         api.loginWithEmail(email = email, password = password)
     }
 
+    override suspend fun sendForgotPasswordEmail(email: String) {
+        api.sendForgotPasswordEmail(email = email)
+    }
 }

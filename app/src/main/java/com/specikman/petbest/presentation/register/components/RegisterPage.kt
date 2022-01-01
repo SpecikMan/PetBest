@@ -27,6 +27,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.google.firebase.auth.FirebaseAuth
 import com.specikman.petbest.R
+import com.specikman.petbest.presentation.navigation.Screen
 import com.specikman.petbest.ui.theme.primaryColor
 import com.specikman.petbest.ui.theme.whiteBackground
 import kotlinx.coroutines.CoroutineScope
@@ -174,7 +175,8 @@ fun RegisterPage(
                                     email = emailValue.value.trim(),
                                     password = passwordValue.value.trim(),
                                     name = nameValue.value.trim(),
-                                    phone = phoneValue.value.trim()
+                                    phone = phoneValue.value.trim(),
+                                    context = context
                                     )
                             } else {
                                 Toast.makeText(
@@ -190,18 +192,16 @@ fun RegisterPage(
                     ) {
                         Text(text = "ĐĂNG KÝ", fontSize = 20.sp)
                     }
-                    Spacer(modifier = Modifier.padding(20.dp))
+                    Spacer(modifier = Modifier.padding(10.dp))
                     Text(
                         text = "Đăng Nhập",
                         modifier = Modifier.clickable(onClick = {
-                            navController.navigate("login_page") {
-                                popUpTo("register_page")
+                            navController.navigate(Screen.LoginScreen.route) {
+                                popUpTo(Screen.RegisterScreen.route)
                                 launchSingleTop = true
                             }
                         })
                     )
-                    Spacer(modifier = Modifier.padding(20.dp))
-
                 }
             }
         }

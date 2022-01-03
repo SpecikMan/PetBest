@@ -1,6 +1,8 @@
-package com.specikman.petbest.ui.theme
+package com.specikman.petbest.presentation.ui.theme
 
 import androidx.compose.ui.graphics.Color
+
+val Orange = Color(0xFFF2994A)
 
 val purple200 = Color(0xFFBB86FC)
 val purple500 = Color(0xFF6200EE)

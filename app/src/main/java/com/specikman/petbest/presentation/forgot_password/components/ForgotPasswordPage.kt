@@ -25,7 +25,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.specikman.petbest.R
 import com.specikman.petbest.presentation.navigation.Screen
-import com.specikman.petbest.ui.theme.whiteBackground
+import com.specikman.petbest.presentation.ui.theme.whiteBackground
+
 
 @Composable
 fun ForgotPasswordPage(
@@ -41,7 +42,7 @@ fun ForgotPasswordPage(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.White),
+                .background(whiteBackground),
             contentAlignment = Alignment.TopCenter
         ) {
             Image(image, "")
@@ -51,7 +52,7 @@ fun ForgotPasswordPage(
                 .fillMaxWidth()
                 .fillMaxHeight(0.70f)
                 .clip(RoundedCornerShape(30.dp))
-                .background(whiteBackground)
+                .background(Color.White)
                 .padding(10.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center

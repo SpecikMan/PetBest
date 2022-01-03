@@ -3,6 +3,8 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/Learning/PetBest/app/src/main/res/drawable-v24/bg_main.xml" value="0.2526041666666667" />
+        <entry key="..\:/Learning/PetBest/app/src/main/res/drawable-v24/ic_cheese.xml" value="0.2526041666666667" />
         <entry key="..\:/Learning/PetBest/app/src/main/res/drawable/ic_google_logo.xml" value="0.2526041666666667" />
         <entry key="..\:/Learning/PetBest/app/src/main/res/drawable/ic_password_eye.xml" value="0.2526041666666667" />
       </map>

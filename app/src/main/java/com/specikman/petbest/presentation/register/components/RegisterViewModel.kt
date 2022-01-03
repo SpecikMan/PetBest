@@ -5,6 +5,7 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.NavController
 import com.specikman.petbest.common.Resource
 import com.specikman.petbest.domain.use_case.login.LoginWithEmailUseCase
 import com.specikman.petbest.domain.use_case.register.RegisterUseCase
@@ -26,9 +27,10 @@ class RegisterViewModel @Inject constructor(
         password: String,
         phone: String,
         name: String,
-        context: Context
+        context: Context,
+        navController: NavController
     ) {
-        registerUseCase(email = email, password = password, phone = phone, name = name, context = context).onEach { result ->
+        registerUseCase(email = email, password = password, phone = phone, name = name, context = context, navController = navController).onEach { result ->
             when (result) {
                 is Resource.Success -> {
                     _state.value = RegisterState(data = result.data ?: "")

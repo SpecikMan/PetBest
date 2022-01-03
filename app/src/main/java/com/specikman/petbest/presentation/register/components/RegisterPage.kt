@@ -14,7 +14,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -28,13 +27,8 @@ import androidx.navigation.NavController
 import com.google.firebase.auth.FirebaseAuth
 import com.specikman.petbest.R
 import com.specikman.petbest.presentation.navigation.Screen
-import com.specikman.petbest.ui.theme.primaryColor
-import com.specikman.petbest.ui.theme.whiteBackground
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
-import kotlinx.coroutines.withContext
+import com.specikman.petbest.presentation.ui.theme.primaryColor
+import com.specikman.petbest.presentation.ui.theme.whiteBackground
 
 private lateinit var auth: FirebaseAuth
 
@@ -176,7 +170,8 @@ fun RegisterPage(
                                     password = passwordValue.value.trim(),
                                     name = nameValue.value.trim(),
                                     phone = phoneValue.value.trim(),
-                                    context = context
+                                    context = context,
+                                    navController = navController
                                     )
                             } else {
                                 Toast.makeText(

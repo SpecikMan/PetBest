@@ -24,7 +24,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.specikman.petbest.R
 import com.specikman.petbest.presentation.login.components.LoginViewModel
-import com.specikman.petbest.ui.theme.whiteBackground
+import com.specikman.petbest.presentation.ui.theme.whiteBackground
 
 @Composable
 fun ExtraInfoForGoogle(
@@ -96,7 +96,8 @@ fun ExtraInfoForGoogle(
                             viewModel.saveExtraInfo(
                                 phone = phoneValue.value,
                                 name = nameValue.value,
-                                context = context
+                                context = context,
+                                navController = navController
                             )
                         },
                         modifier = Modifier

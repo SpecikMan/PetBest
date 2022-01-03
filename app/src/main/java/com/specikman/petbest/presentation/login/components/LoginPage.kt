@@ -34,10 +34,9 @@ import com.specikman.petbest.R
 import com.specikman.petbest.presentation.components.google_button.GoogleButton
 import com.specikman.petbest.presentation.login.components.google_login.utils.getGoogleSignInClient
 import com.specikman.petbest.presentation.navigation.Screen
-import com.specikman.petbest.ui.theme.primaryColor
-import com.specikman.petbest.ui.theme.whiteBackground
+import com.specikman.petbest.presentation.ui.theme.primaryColor
+import com.specikman.petbest.presentation.ui.theme.whiteBackground
 
-private const val REQUEST_CODE_SIGN_IN = 0
 @Composable
 fun LoginPage(
     navController: NavController,
@@ -171,6 +170,9 @@ fun LoginPage(
                                     "Login Success: UID: ${auth.currentUser?.uid}",
                                     Toast.LENGTH_LONG
                                 ).show()
+                                navController.navigate(Screen.MainScreen.route){
+                                    launchSingleTop = true
+                                }
                             }
                         },
                         modifier = Modifier

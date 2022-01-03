@@ -82,8 +82,8 @@ class LoginViewModel @Inject constructor(
                             launchSingleTop = true
                         }
                     } else {
-                        withContext(Dispatchers.Main) {
-                            Toast.makeText(context, "To main screen", Toast.LENGTH_LONG).show()
+                        navController.navigate(Screen.MainScreen.route) {
+                            launchSingleTop = true
                         }
                     }
                 }
@@ -99,7 +99,8 @@ class LoginViewModel @Inject constructor(
     fun saveExtraInfo(
         phone: String,
         name: String,
-        context: Context
+        context: Context,
+        navController: NavController
     ) = CoroutineScope(Dispatchers.IO).launch {
         auth.currentUser?.let {
             val currentEmail = it.email ?: ""
@@ -118,6 +119,9 @@ class LoginViewModel @Inject constructor(
                     ).await()
                     withContext(Dispatchers.Main) {
                         Toast.makeText(context, "Lưu thành công", Toast.LENGTH_LONG).show()
+                        navController.navigate(Screen.MainScreen.route){
+                            launchSingleTop = true
+                        }
                     }
                 } catch (e: Exception) {
                     withContext(Dispatchers.Main) {

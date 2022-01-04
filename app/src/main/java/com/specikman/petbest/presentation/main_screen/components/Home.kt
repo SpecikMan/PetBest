@@ -1,7 +1,5 @@
 package com.specikman.petbest.presentation.main_screen.components
 
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
@@ -11,11 +9,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.rounded.Search
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
@@ -25,18 +23,27 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import com.specikman.petbest.R
+import com.specikman.petbest.presentation.main_screen.view_models.HomeViewModel
 import com.specikman.petbest.presentation.ui.theme.HomeTheme
 
 @Composable
-fun Home() {
+fun Home(
+    navController: NavController,
+    viewModel: HomeViewModel = hiltViewModel()
+) {
     HomeTheme {
-        HomeScreen()
+        HomeScreen(navController = navController, viewModel = viewModel)
     }
 }
 
 @Composable
-fun HomeScreen() {
+fun HomeScreen(
+    navController: NavController,
+    viewModel: HomeViewModel
+) {
     Box(Modifier.verticalScroll(rememberScrollState())) {
         Image(
             modifier = Modifier
@@ -47,16 +54,19 @@ fun HomeScreen() {
             contentScale = ContentScale.FillWidth
         )
         Column {
-            AppBar()
-            Content()
+            AppBar(navController = navController, viewModel = viewModel)
+            Content(navController = navController, viewModel = viewModel)
         }
     }
 }
 
 @Composable
-fun AppBar() {
+fun AppBar(
+    navController: NavController,
+    viewModel: HomeViewModel
+) {
 
-    var searchValue = remember { mutableStateOf("")}
+    val searchValue = remember { mutableStateOf("") }
 
     Row(
         Modifier
@@ -67,7 +77,7 @@ fun AppBar() {
     ) {
         TextField(
             value = "",
-            onValueChange = {searchValue.value = it},
+            onValueChange = { searchValue.value = it },
             label = { Text(text = "Tìm kiếm", fontSize = 12.sp) },
             singleLine = true,
             leadingIcon = { Icon(imageVector = Icons.Rounded.Search, contentDescription = "") },
@@ -82,7 +92,8 @@ fun AppBar() {
                 .fillMaxHeight()
         )
         Spacer(modifier = Modifier.width(8.dp))
-        IconButton(onClick = {}) {
+        IconButton(onClick = {
+        }) {
             Icon(
                 imageVector = Icons.Outlined.FavoriteBorder,
                 contentDescription = "",
@@ -100,7 +111,10 @@ fun AppBar() {
 }
 
 @Composable
-fun Content() {
+fun Content(
+    navController: NavController,
+    viewModel: HomeViewModel
+) {
     Column {
         Header()
         Spacer(modifier = Modifier.height(16.dp))
@@ -109,7 +123,8 @@ fun Content() {
         CategorySection()
         Spacer(modifier = Modifier.height(16.dp))
         BestSellerSection()
-        BestSellerSection()
+        Spacer(modifier = Modifier.height(16.dp))
+        DiscountSection()
         Spacer(modifier = Modifier.height(50.dp))
     }
 }
@@ -144,7 +159,11 @@ fun Header() {
                 )
                 Column(Modifier.padding(8.dp)) {
                     Text(text = "560.000đ", fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                    Text(text = "Tiền trong tài khoản", color = MaterialTheme.colors.primary, fontSize = 12.sp)
+                    Text(
+                        text = "Tiền trong tài khoản",
+                        color = MaterialTheme.colors.primary,
+                        fontSize = 12.sp
+                    )
                 }
             }
 
@@ -291,36 +310,8 @@ fun CategorySection() {
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(text = "Danh Mục", style = MaterialTheme.typography.h6)
-            TextButton(onClick = {}) {
-                Text(text = "More", color = MaterialTheme.colors.primary)
-            }
         }
-
-        Row(
-            Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            CategoryButton(
-                text = "Fruits",
-                icon = painterResource(id = R.drawable.ic_orange),
-                backgroundColor = Color(0xffFEF4E7)
-            )
-            CategoryButton(
-                text = "Vegetables",
-                icon = painterResource(id = R.drawable.ic_veg),
-                backgroundColor = Color(0xffF6FBF3)
-            )
-            CategoryButton(
-                text = "Dairy",
-                icon = painterResource(id = R.drawable.ic_cheese),
-                backgroundColor = Color(0xffFFFBF3)
-            )
-            CategoryButton(
-                text = "Meats",
-                icon = painterResource(id = R.drawable.ic_meat),
-                backgroundColor = Color(0xffF6E6E9)
-            )
-        }
+        CategoryItems()
     }
 }
 
@@ -367,44 +358,92 @@ fun BestSellerSection() {
         ) {
             Text(text = "Mặt hàng bán chạy", style = MaterialTheme.typography.h6)
             TextButton(onClick = {}) {
-                Text(text = "More", color = MaterialTheme.colors.primary)
+                Text(text = "Xem thêm", color = MaterialTheme.colors.primary)
             }
         }
-
         BestSellerItems()
     }
 }
 
 @Composable
-fun BestSellerItems() {
+fun DiscountSection() {
+    Column {
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(text = "Siêu giảm giá", style = MaterialTheme.typography.h6)
+            TextButton(onClick = {}) {
+                Text(text = "Xem thêm", color = MaterialTheme.colors.primary)
+            }
+        }
+        DiscountItems()
+    }
+}
+
+@Composable
+fun BestSellerItems(
+) {
     LazyRow(
         contentPadding = PaddingValues(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
+    }
+}
+
+@Composable
+fun CategoryItems() {
+    LazyRow(
+        contentPadding = PaddingValues(vertical = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
         item {
-            BestSellerItem(
-                imagePainter = painterResource(id = R.drawable.item_lettuce),
-                title = "Iceberg Lettuce",
-                price = "1.99",
-                discountPercent = 10
+            CategoryButton(
+                text = "Thức ăn",
+                icon = painterResource(id = R.drawable.img_category_food),
+                backgroundColor = Color(0xffFEF4E7)
             )
         }
         item {
-            BestSellerItem(
-                imagePainter = painterResource(id = R.drawable.item_apple),
-                title = "Apple",
-                price = "2.64",
-                discountPercent = 5
+            CategoryButton(
+                text = "Dụng cụ",
+                icon = painterResource(id = R.drawable.img_category_equipment),
+                backgroundColor = Color(0xffF6FBF3)
             )
         }
         item {
-            BestSellerItem(
-                imagePainter = painterResource(id = R.drawable.item_meat),
-                title = "Meat",
-                price = "4.76",
-                discountPercent = 20
+            CategoryButton(
+                text = "Quần áo",
+                icon = painterResource(id = R.drawable.img_category_clothes),
+                backgroundColor = Color(0xffF6FBF3)
             )
         }
+        item {
+            CategoryButton(
+                text = "Thuốc",
+                icon = painterResource(id = R.drawable.img_category_medicine),
+                backgroundColor = Color(0xffFFFBF3)
+            )
+        }
+        item {
+            CategoryButton(
+                text = "Nhà, Chuồng",
+                icon = painterResource(id = R.drawable.img_category_house),
+                backgroundColor = Color(0xffF6E6E9)
+            )
+        }
+    }
+}
+
+@Composable
+fun DiscountItems() {
+    LazyRow(
+        contentPadding = PaddingValues(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
     }
 }
 
@@ -453,3 +492,4 @@ fun BestSellerItem(
         }
     }
 }
+

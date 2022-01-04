@@ -73,14 +73,14 @@ fun MainScreen(
                             icon = Icons.Default.Home
                         ),
                         BottomNavItem(
-                            name = "Settings",
+                            name = "Tất cả mặt hàng",
                             route = "setting",
-                            icon = Icons.Default.Settings
+                            icon = Icons.Default.Menu
                         ),
                         BottomNavItem(
-                            name = "Search",
+                            name = "Dịch vụ chăm sóc",
                             route = "search",
-                            icon = Icons.Default.Search
+                            icon = Icons.Default.CheckCircle
                         )
                     ),
                     navController = navControllerM,

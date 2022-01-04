@@ -3,16 +3,20 @@ package com.specikman.petbest.data.remote.firebase
 
 import android.content.res.Resources
 import android.util.Log
+import androidx.compose.animation.core.snap
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.preferencesDataStore
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.api.Context
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.ktx.app
 import com.google.firebase.ktx.options
 import com.specikman.petbest.R
+import com.specikman.petbest.domain.model.Category
+import com.specikman.petbest.domain.model.Product
 import com.specikman.petbest.domain.model.User
 import dagger.Provides
 import kotlinx.coroutines.CoroutineScope
@@ -27,6 +31,8 @@ class FirebaseAPI {
     private val TAG = "LOGIN"
     private lateinit var auth: FirebaseAuth
     private val userCollectionRef = Firebase.firestore.collection("users")
+    private val productRef = Firebase.firestore.collection("products")
+    private val categoryRef = Firebase.firestore.collection("categories")
 
     //
     suspend fun loginWithEmail(
@@ -82,18 +88,57 @@ class FirebaseAPI {
     }
 
     suspend fun sendForgotPasswordEmail(
-        email : String
-    ){
+        email: String
+    ) {
         auth = FirebaseAuth.getInstance()
-        if(email.isNotBlank()){
+        if (email.isNotBlank()) {
             CoroutineScope(Dispatchers.IO).launch {
-                try{
+                try {
                     auth.sendPasswordResetEmail(email)
-                }catch(e: Exception){
+                } catch (e: Exception) {
                     e.printStackTrace()
                 }
             }
         }
 
+    }
+
+    suspend fun getProducts(): List<Product> {
+        val products = mutableListOf<Product>()
+        val snapshot = productRef.get().await()
+        return if (snapshot.documents.isNotEmpty()) {
+            for (document in snapshot.documents) {
+                document.toObject(Product::class.java)?.let {
+                    products.add(it)
+                }
+            }
+            products
+        } else {
+            emptyList()
+        }
+    }
+
+    suspend fun getProductById(id: Int): Product {
+        val snapshot = productRef.whereEqualTo("id", id).get().await()
+        return if (snapshot.documents.isNotEmpty()) {
+            snapshot.documents[0].toObject(Product::class.java) ?: Product()
+        } else {
+            Product()
+        }
+    }
+
+    suspend fun getCategories(): List<Category>{
+        val cats = mutableListOf<Category>()
+        val snapshot = categoryRef.get().await()
+        return if(snapshot.documents.isNotEmpty()){
+            for(document in snapshot.documents){
+                document.toObject(Category::class.java)?.let{
+                    cats.add(it)
+                }
+            }
+            cats
+        } else {
+            emptyList()
+        }
     }
 }

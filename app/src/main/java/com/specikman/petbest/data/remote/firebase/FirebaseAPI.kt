@@ -1,40 +1,35 @@
 package com.specikman.petbest.data.remote.firebase
 
 
-import android.content.res.Resources
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.util.Log
-import androidx.compose.animation.core.snap
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.preferencesDataStore
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions
-import com.google.api.Context
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.ktx.Firebase
-import com.google.firebase.ktx.app
-import com.google.firebase.ktx.options
-import com.specikman.petbest.R
+import com.google.firebase.storage.ktx.storage
+import com.specikman.petbest.data.remote.dto.Image
 import com.specikman.petbest.domain.model.Category
 import com.specikman.petbest.domain.model.Product
 import com.specikman.petbest.domain.model.User
-import dagger.Provides
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import kotlinx.coroutines.tasks.await
-import kotlinx.coroutines.withContext
-import java.util.prefs.Preferences
 
 class FirebaseAPI {
-    //
-    private val TAG = "LOGIN"
+
     private lateinit var auth: FirebaseAuth
+
+    //Firestore
     private val userCollectionRef = Firebase.firestore.collection("users")
     private val productRef = Firebase.firestore.collection("products")
     private val categoryRef = Firebase.firestore.collection("categories")
 
-    //
+    //Storage
+    private val storageRef = Firebase.storage
+    private val downloadSize = 5L * 1024 * 1024
+
+
     suspend fun loginWithEmail(
         email: String,
         password: String,
@@ -45,7 +40,7 @@ class FirebaseAPI {
                 try {
                     auth.signInWithEmailAndPassword(email, password).await()
                 } catch (e: Exception) {
-                    Log.e(TAG, e.toString())
+                    e.printStackTrace()
                 }
             }
         }
@@ -62,7 +57,6 @@ class FirebaseAPI {
             CoroutineScope(Dispatchers.IO).launch {
                 try {
                     auth.createUserWithEmailAndPassword(email, password).await()
-                    Log.d(TAG, "Current UID: ${auth.currentUser?.uid}")
                     saveUser(
                         User(
                             email = email,
@@ -72,7 +66,7 @@ class FirebaseAPI {
                         )
                     )
                 } catch (e: Exception) {
-                    Log.e(TAG, e.toString())
+                    e.printStackTrace()
                 }
             }
         }
@@ -81,13 +75,12 @@ class FirebaseAPI {
     private suspend fun saveUser(user: User) {
         try {
             userCollectionRef.add(user).await()
-            Log.d(TAG, "Current UID: ${auth.currentUser?.uid}. Save success")
         } catch (e: Exception) {
             e.printStackTrace()
         }
     }
 
-    suspend fun sendForgotPasswordEmail(
+    fun sendForgotPasswordEmail(
         email: String
     ) {
         auth = FirebaseAuth.getInstance()
@@ -118,6 +111,20 @@ class FirebaseAPI {
         }
     }
 
+    suspend fun getBestSellerProducts(): List<Product> = CoroutineScope(Dispatchers.IO).async {
+        val products = mutableListOf<Product>()
+        val snapshot =
+            productRef.orderBy("bought", Query.Direction.DESCENDING).limit(6).get().await()
+        if (snapshot.documents.isNotEmpty()) {
+            for (document in snapshot.documents) {
+                document.toObject(Product::class.java)?.let {
+                    products.add(it)
+                }
+            }
+        }
+        return@async products
+    }.await()
+
     suspend fun getProductById(id: Int): Product {
         val snapshot = productRef.whereEqualTo("id", id).get().await()
         return if (snapshot.documents.isNotEmpty()) {
@@ -127,12 +134,12 @@ class FirebaseAPI {
         }
     }
 
-    suspend fun getCategories(): List<Category>{
+    suspend fun getCategories(): List<Category> {
         val cats = mutableListOf<Category>()
         val snapshot = categoryRef.get().await()
-        return if(snapshot.documents.isNotEmpty()){
-            for(document in snapshot.documents){
-                document.toObject(Category::class.java)?.let{
+        return if (snapshot.documents.isNotEmpty()) {
+            for (document in snapshot.documents) {
+                document.toObject(Category::class.java)?.let {
                     cats.add(it)
                 }
             }
@@ -141,4 +148,20 @@ class FirebaseAPI {
             emptyList()
         }
     }
+
+    suspend fun getProductImagesFromStorage(): List<Image> =
+        CoroutineScope(Dispatchers.IO).async {
+            val images = mutableListOf<Image>()
+            for (product in getBestSellerProducts()) {
+                val img =
+                    storageRef.getReferenceFromUrl(product.image).getBytes(downloadSize).await()
+                images.add(
+                    Image(
+                        image = product.image,
+                        bitmap = BitmapFactory.decodeByteArray(img, 0, img.size)
+                    )
+                )
+            }
+            return@async images
+        }.await()
 }

@@ -12,11 +12,11 @@ class GetCategoriesUseCase @Inject constructor(
 ) {
     operator fun invoke(): Flow<Resource<List<Category>>> = flow {
         try{
-            emit(Resource.Loading())
+            emit(Resource.Loading<List<Category>>())
             val cats = repository.getCategories()
-            emit(Resource.Success(cats))
+            emit(Resource.Success<List<Category>>(cats))
         }catch(e: Exception){
-            emit(Resource.Error(e.localizedMessage?:"An unexpected error occurred"))
+            emit(Resource.Error<List<Category>>(e.localizedMessage?:"An unexpected error occurred"))
         }
     }
 }

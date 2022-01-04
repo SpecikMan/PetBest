@@ -1,8 +1,11 @@
 package com.specikman.petbest.presentation.main_screen.components
 
+import android.graphics.Bitmap
+import android.util.Log
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -15,6 +18,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -26,6 +30,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.specikman.petbest.R
+import com.specikman.petbest.domain.model.Product
 import com.specikman.petbest.presentation.main_screen.view_models.HomeViewModel
 import com.specikman.petbest.presentation.ui.theme.HomeTheme
 
@@ -122,10 +127,10 @@ fun Content(
         Spacer(modifier = Modifier.height(16.dp))
         CategorySection()
         Spacer(modifier = Modifier.height(16.dp))
-        BestSellerSection()
+        BestSellerSection(navController = navController, viewModel = viewModel)
         Spacer(modifier = Modifier.height(16.dp))
         DiscountSection()
-        Spacer(modifier = Modifier.height(50.dp))
+        Spacer(modifier = Modifier.height(90.dp))
     }
 }
 
@@ -347,7 +352,10 @@ fun CategoryButton(
 }
 
 @Composable
-fun BestSellerSection() {
+fun BestSellerSection(
+    navController: NavController,
+    viewModel: HomeViewModel
+) {
     Column {
         Row(
             Modifier
@@ -361,7 +369,11 @@ fun BestSellerSection() {
                 Text(text = "Xem thêm", color = MaterialTheme.colors.primary)
             }
         }
-        BestSellerItems()
+        BestSellerItems(
+            products = viewModel.stateBestSellerProducts.value.products,
+            navController = navController,
+            viewModel = viewModel
+        )
     }
 }
 
@@ -386,11 +398,24 @@ fun DiscountSection() {
 
 @Composable
 fun BestSellerItems(
+    products: List<Product>,
+    navController: NavController,
+    viewModel: HomeViewModel
 ) {
     LazyRow(
         contentPadding = PaddingValues(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
+        items(products) { item ->
+            if (viewModel.stateImages.value.isLoading) {
+                CircularProgressIndicator()
+            } else {
+                BestSellerItem(
+                    product = item,
+                    bitmap = viewModel.stateImages.value.images.first { item.image == it.image }.bitmap
+                )
+            }
+        }
     }
 }
 
@@ -449,21 +474,18 @@ fun DiscountItems() {
 
 @Composable
 fun BestSellerItem(
-    title: String = "",
-    price: String = "",
+    product: Product,
     discountPercent: Int = 0,
-    imagePainter: Painter
+    bitmap: Bitmap
 ) {
     Card(
         Modifier
             .width(160.dp)
     ) {
-        Column(
-            Modifier
-                .padding(bottom = 32.dp)
-        ) {
+        Column{
+            Spacer(modifier = Modifier.height(5.dp))
             Image(
-                painter = imagePainter, contentDescription = "",
+                bitmap = bitmap.asImageBitmap(), contentDescription = "",
                 modifier = Modifier
                     .fillMaxWidth()
                     .aspectRatio(1f),
@@ -472,12 +494,15 @@ fun BestSellerItem(
             Column(
                 Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 8.dp)
+                    .padding(horizontal = 8.dp),
+                verticalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(text = title, fontWeight = FontWeight.Bold)
-                Row {
+                Text(text = product.name, fontWeight = FontWeight.Bold)
+                Row(
+                    modifier = Modifier.padding(top = 10.dp)
+                ) {
                     Text(
-                        "$${price}",
+                        "${product.price}đ",
                         textDecoration = if (discountPercent > 0)
                             TextDecoration.LineThrough
                         else
@@ -488,6 +513,11 @@ fun BestSellerItem(
                         Text(text = "[$discountPercent%]", color = MaterialTheme.colors.primary)
                     }
                 }
+                Spacer(modifier = Modifier.height(5.dp))
+                Text(
+                    text = if (product.stock > 0) "Còn hàng" else "Hết hàng",
+                    color = if (product.stock > 0) Color.Green else Color.Red
+                )
             }
         }
     }

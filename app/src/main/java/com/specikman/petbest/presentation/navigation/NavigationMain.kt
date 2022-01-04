@@ -11,7 +11,7 @@ import com.specikman.petbest.presentation.main_screen.components.Home
 fun NavigationMain(navController: NavHostController) {
     NavHost(navController = navController, startDestination = Screen.Home.route) {
         composable(route = Screen.Home.route) {
-            Home()
+            Home(navController = navController)
         }
         composable(route = Screen.Search.route){
             Search()

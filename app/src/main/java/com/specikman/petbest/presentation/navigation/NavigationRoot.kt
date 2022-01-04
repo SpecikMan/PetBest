@@ -17,7 +17,7 @@ import com.specikman.petbest.presentation.register.components.RegisterPage
 @Composable
 fun NavigationRoot(context: Context) {
     val navController = rememberNavController()
-    NavHost(navController = navController, startDestination = Screen.MainScreen.route) {
+    NavHost(navController = navController, startDestination = Screen.LoginScreen.route) {
         composable(route = Screen.LoginScreen.route){
             LoginPage(navController = navController , context = context)
         }

@@ -4,10 +4,17 @@ import androidx.compose.ui.graphics.Color
 
 val Orange = Color(0xFFF2994A)
 
-val purple200 = Color(0xFFBB86FC)
-val purple500 = Color(0xFF6200EE)
-val purple700 = Color(0xFF3700B3)
-val teal200 = Color(0xFF03DAC5)
 
 val primaryColor = Color(0xFF7048B6)
 val whiteBackground = Color(0xFFF7F7F7)
+
+val Purple200 = Color(0xFFBB86FC)
+val Purple500 = Color(0xFF6200EE)
+val Purple700 = Color(0xFF3700B3)
+val Teal200 = Color(0xFF03DAC5)
+val Pink = Color(0xFFB50F53)
+val Gray = Color(0xFFCBCBCB)
+val LightGray = Color(0xFFF7F7F7)
+val DarkGray = Color(0xFFACACAC)
+val Transparent = Color(0x00FFFFFF)
+val White = Color(0xFFFFFFFF)

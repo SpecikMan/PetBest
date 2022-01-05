@@ -13,6 +13,7 @@ import com.specikman.petbest.common.Resource
 import com.specikman.petbest.domain.model.Product
 import com.specikman.petbest.domain.use_case.get_categories.GetCategoriesUseCase
 import com.specikman.petbest.domain.use_case.get_products.GetBestSellerProductsUseCase
+import com.specikman.petbest.domain.use_case.get_products.GetMostDiscountProductsUseCase
 import com.specikman.petbest.domain.use_case.get_products.GetProductImagesFromStorageUseCase
 import com.specikman.petbest.domain.use_case.get_products.GetProductsUseCase
 import com.specikman.petbest.presentation.main_screen.state.ImageState
@@ -29,7 +30,7 @@ class HomeViewModel @Inject constructor(
     private val getProductsUseCase: GetProductsUseCase,
     private val getBestSellerProductsUseCase: GetBestSellerProductsUseCase,
     private val getProductImagesFromStorageUseCase: GetProductImagesFromStorageUseCase,
-    private val getCategoriesUseCase: GetCategoriesUseCase
+    private val getMostDiscountProductsUseCase: GetMostDiscountProductsUseCase,
 ) : ViewModel() {
 
     private val _stateProducts = mutableStateOf(ProductsState())
@@ -38,13 +39,22 @@ class HomeViewModel @Inject constructor(
     private val _stateBestSellerProducts = mutableStateOf(ProductsState())
     val stateBestSellerProducts: State<ProductsState> = _stateBestSellerProducts
 
+    private val _stateMostDiscountProducts = mutableStateOf(ProductsState())
+    val stateMostDiscountProducts: State<ProductsState> = _stateMostDiscountProducts
+
     private val _stateImages = mutableStateOf(ImageState())
     val stateImages: State<ImageState> = _stateImages
 
+    val _stateShowProduct = mutableStateOf(_stateProducts.value.products)
+    var stateShowProduct: State<List<Product>> = _stateShowProduct
+
+    val _stateProductDetail = mutableStateOf(Product())
+    var stateProductDetail: State<Product> = _stateProductDetail
 
     init {
         getProducts()
         getBestSellerProducts()
+        getMostDiscountProducts()
         getProductImagesFromStorage()
     }
 
@@ -94,6 +104,23 @@ class HomeViewModel @Inject constructor(
                 is Resource.Error -> {
                     _stateImages.value =
                         ImageState(error = result.message ?: "An unexpected error occurred")
+                }
+            }
+        }.launchIn(viewModelScope)
+    }
+
+    private fun getMostDiscountProducts(){
+        getMostDiscountProductsUseCase().onEach { result ->
+            when (result) {
+                is Resource.Success -> {
+                    _stateMostDiscountProducts.value = ProductsState(products = result.data ?: emptyList())
+                }
+                is Resource.Loading -> {
+                    _stateMostDiscountProducts.value = ProductsState(isLoading = true)
+                }
+                is Resource.Error -> {
+                    _stateMostDiscountProducts.value =
+                        ProductsState(error = result.message ?: "An unexpected error occurred")
                 }
             }
         }.launchIn(viewModelScope)

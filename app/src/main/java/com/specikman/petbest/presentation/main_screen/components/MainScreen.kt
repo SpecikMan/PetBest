@@ -38,8 +38,8 @@ fun MainScreen(
 ) {
     val navControllerM = rememberNavController()
     var navigateClick by remember { mutableStateOf(false) }
-    val offSetAnim by animateDpAsState(targetValue = if (navigateClick) 253.dp else 0.dp)
-    val scaleAnim by animateFloatAsState(targetValue = if (navigateClick) 0.6f else 1.0f)
+    val offSetAnim by animateDpAsState(targetValue = if (navigateClick) 240.dp else 0.dp)
+    val scaleAnim by animateFloatAsState(targetValue = if (navigateClick) 0.7f else 1.0f)
     NavigationDrawer()
     Column(
         modifier = Modifier
@@ -74,7 +74,7 @@ fun MainScreen(
                         ),
                         BottomNavItem(
                             name = "Tất cả mặt hàng",
-                            route = "setting",
+                            route = "all_products",
                             icon = Icons.Default.Menu
                         ),
                         BottomNavItem(

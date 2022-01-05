@@ -7,6 +7,7 @@ sealed class Screen(val route : String) {
     object ExtraInfoForGoogle : Screen("extra_info_for_google")
     object MainScreen : Screen("main_screen")
     object Home : Screen("home")
-    object Search : Screen("search")
+    object AllProducts : Screen("all_products")
     object Settings : Screen("setting")
+    object ProductDetail: Screen("product_detail")
 }

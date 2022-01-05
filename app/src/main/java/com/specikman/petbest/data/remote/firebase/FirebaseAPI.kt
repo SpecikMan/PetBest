@@ -96,20 +96,20 @@ class FirebaseAPI {
 
     }
 
-    suspend fun getProducts(): List<Product> {
+    //Product
+    suspend fun getProducts(): List<Product> = CoroutineScope(Dispatchers.IO).async {
         val products = mutableListOf<Product>()
-        val snapshot = productRef.get().await()
-        return if (snapshot.documents.isNotEmpty()) {
+        val snapshot =
+            productRef.get().await()
+        if (snapshot.documents.isNotEmpty()) {
             for (document in snapshot.documents) {
                 document.toObject(Product::class.java)?.let {
                     products.add(it)
                 }
             }
-            products
-        } else {
-            emptyList()
         }
-    }
+        return@async products
+    }.await()
 
     suspend fun getBestSellerProducts(): List<Product> = CoroutineScope(Dispatchers.IO).async {
         val products = mutableListOf<Product>()
@@ -125,43 +125,64 @@ class FirebaseAPI {
         return@async products
     }.await()
 
-    suspend fun getProductById(id: Int): Product {
-        val snapshot = productRef.whereEqualTo("id", id).get().await()
-        return if (snapshot.documents.isNotEmpty()) {
-            snapshot.documents[0].toObject(Product::class.java) ?: Product()
-        } else {
-            Product()
-        }
-    }
-
-    suspend fun getCategories(): List<Category> {
-        val cats = mutableListOf<Category>()
-        val snapshot = categoryRef.get().await()
-        return if (snapshot.documents.isNotEmpty()) {
-            for (document in snapshot.documents) {
-                document.toObject(Category::class.java)?.let {
-                    cats.add(it)
-                }
-            }
-            cats
-        } else {
-            emptyList()
-        }
-    }
-
-    suspend fun getProductImagesFromStorage(): List<Image> =
-        CoroutineScope(Dispatchers.IO).async {
-            val images = mutableListOf<Image>()
-            for (product in getBestSellerProducts()) {
-                val img =
-                    storageRef.getReferenceFromUrl(product.image).getBytes(downloadSize).await()
-                images.add(
-                    Image(
-                        image = product.image,
-                        bitmap = BitmapFactory.decodeByteArray(img, 0, img.size)
-                    )
+    suspend fun getProductImagesFromStorage(): List<Image> = CoroutineScope(Dispatchers.IO).async {
+        val images = mutableListOf<Image>()
+        for(product in getProducts()){
+            val img =
+                storageRef.getReferenceFromUrl(product.image).getBytes(downloadSize).await()
+            images.add(
+                Image(
+                    image = product.image,
+                    bitmap = BitmapFactory.decodeByteArray(img, 0, img.size)
                 )
+            )
+        }
+        return@async images
+    }.await()
+
+
+
+
+suspend fun getMostDiscountProducts(): List<Product> = CoroutineScope(Dispatchers.IO).async {
+    val products = mutableListOf<Product>()
+    val snapshot =
+        productRef.orderBy("discount", Query.Direction.DESCENDING).limit(6).get().await()
+    if (snapshot.documents.isNotEmpty()) {
+        for (document in snapshot.documents) {
+            document.toObject(Product::class.java)?.let {
+                products.add(it)
             }
-            return@async images
-        }.await()
+        }
+    }
+    return@async products
+}.await()
+
+suspend fun getProductById(id: Int): Product {
+    val snapshot = productRef.whereEqualTo("id", id).get().await()
+    return if (snapshot.documents.isNotEmpty()) {
+        snapshot.documents[0].toObject(Product::class.java) ?: Product()
+    } else {
+        Product()
+    }
+}
+
+//Category
+suspend fun getCategories(): List<Category> {
+    val cats = mutableListOf<Category>()
+    val snapshot = categoryRef.get().await()
+    return if (snapshot.documents.isNotEmpty()) {
+        for (document in snapshot.documents) {
+            document.toObject(Category::class.java)?.let {
+                cats.add(it)
+            }
+        }
+        cats
+    } else {
+        emptyList()
+    }
+}
+
+
+
+
 }

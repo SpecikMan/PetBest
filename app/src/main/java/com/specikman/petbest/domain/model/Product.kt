@@ -7,5 +7,9 @@ data class Product(
     val category: String = "",
     val price: Long = 0L,
     val stock: Int = 0,
-    var bought: Int = 0
+    val bought: Int = 0,
+    val discount: Int = 0,
+    val description: String = "",
+    val benefit: String = "",
+    val how_to_use: String = ""
 )

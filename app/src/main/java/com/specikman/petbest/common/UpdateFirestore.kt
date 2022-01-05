@@ -11,26 +11,47 @@ import kotlinx.coroutines.tasks.await
 import kotlin.random.Random
 
 class UpdateFirestore {
-    fun getMap(old: Product): MutableMap<String, Any> = mutableMapOf<String, Any>().apply {
-        this["id"] = old.id
-        this["name"] = old.name
-        this["image"] = old.image
-        this["category"] = old.category
-        this["price"] = old.price
-        this["stock"] = old.stock
-        this["bought"] = Random.nextInt(0, 200)
-    }
+    companion object {
+        private val ref = Firebase.firestore.collection("products")
+        private fun getMap(old: Product): MutableMap<String, Any> = mutableMapOf<String, Any>().apply {
+            this["id"] = old.id
+            this["name"] = old.name
+            this["image"] = old.image
+            this["category"] = old.category
+            this["price"] = old.price
+            this["stock"] = old.stock
+            this["bought"] = old.bought
+            this["discount"] = old.discount
+            this["description"] = "o"
+            this["benefit"] = "o"
+            this["how_to_use"] = "o"
+        }
 
-    val ref = Firebase.firestore.collection("products")
-    fun update(product: Product, map: Map<String, Any>) = CoroutineScope(Dispatchers.IO).launch {
-        val query = ref.whereEqualTo("id", product.id).get().await()
-        if (query.documents.isNotEmpty()) {
-            for (document in query) {
-                ref.document(document.id).set(
-                    map,
-                    SetOptions.merge()
-                ).await()
+        private fun update(product: Product, map: Map<String, Any>) =
+            CoroutineScope(Dispatchers.IO).launch {
+                val query = ref.whereEqualTo("id", product.id).get().await()
+                if (query.documents.isNotEmpty()) {
+                    for (document in query) {
+                        ref.document(document.id).set(
+                            map,
+                            SetOptions.merge()
+                        ).await()
+                    }
+                }
+            }
+
+        fun updateFirestore() {
+            CoroutineScope(Dispatchers.IO).launch {
+                val ref = Firebase.firestore.collection("products")
+                val snapshot = ref.get().await()
+                for (document in snapshot.documents) {
+                    val product = document.toObject(Product::class.java) ?: Product()
+                    val map =
+                        getMap(product)
+                    update(product = product, map = map)
+                }
             }
         }
     }
+
 }

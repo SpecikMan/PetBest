@@ -1,7 +1,6 @@
 package com.specikman.petbest.presentation.main_screen.components
 
 import android.graphics.Bitmap
-import android.util.Log
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
@@ -27,17 +26,18 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.specikman.petbest.R
+import com.specikman.petbest.common.ToMoneyFormat
 import com.specikman.petbest.domain.model.Product
 import com.specikman.petbest.presentation.main_screen.view_models.HomeViewModel
+import com.specikman.petbest.presentation.navigation.Screen
 import com.specikman.petbest.presentation.ui.theme.HomeTheme
 
 @Composable
 fun Home(
     navController: NavController,
-    viewModel: HomeViewModel = hiltViewModel()
+    viewModel: HomeViewModel
 ) {
     HomeTheme {
         HomeScreen(navController = navController, viewModel = viewModel)
@@ -81,9 +81,9 @@ fun AppBar(
         horizontalArrangement = Arrangement.SpaceAround
     ) {
         TextField(
-            value = "",
+            value = searchValue.value,
             onValueChange = { searchValue.value = it },
-            label = { Text(text = "Tìm kiếm", fontSize = 12.sp) },
+            label = { Text(text = "Tìm kiếm", fontSize = 9.sp) },
             singleLine = true,
             leadingIcon = { Icon(imageVector = Icons.Rounded.Search, contentDescription = "") },
             colors = TextFieldDefaults.textFieldColors(
@@ -125,11 +125,11 @@ fun Content(
         Spacer(modifier = Modifier.height(16.dp))
         Promotions()
         Spacer(modifier = Modifier.height(16.dp))
-        CategorySection()
+        CategorySection(navController = navController, viewModel = viewModel)
         Spacer(modifier = Modifier.height(16.dp))
         BestSellerSection(navController = navController, viewModel = viewModel)
         Spacer(modifier = Modifier.height(16.dp))
-        DiscountSection()
+        DiscountSection(navController = navController, viewModel = viewModel)
         Spacer(modifier = Modifier.height(90.dp))
     }
 }
@@ -197,7 +197,8 @@ fun Header() {
 @Composable
 fun QrButton() {
     IconButton(
-        onClick = {},
+        onClick = {
+        },
         modifier = Modifier
             .fillMaxHeight()
             .aspectRatio(1f)
@@ -307,7 +308,10 @@ fun PromotionItem(
 }
 
 @Composable
-fun CategorySection() {
+fun CategorySection(
+    navController: NavController,
+    viewModel: HomeViewModel
+) {
     Column(Modifier.padding(horizontal = 16.dp)) {
         Row(
             Modifier.fillMaxWidth(),
@@ -316,7 +320,7 @@ fun CategorySection() {
         ) {
             Text(text = "Danh Mục", style = MaterialTheme.typography.h6)
         }
-        CategoryItems()
+        CategoryItems(navController = navController, viewModel = viewModel)
     }
 }
 
@@ -324,12 +328,15 @@ fun CategorySection() {
 fun CategoryButton(
     text: String = "",
     icon: Painter,
-    backgroundColor: Color
+    backgroundColor: Color,
+    onClick: () -> Unit
 ) {
     Column(
         Modifier
             .width(72.dp)
-            .clickable { }
+            .clickable {
+                onClick()
+            }
     ) {
         Box(
             Modifier
@@ -378,7 +385,10 @@ fun BestSellerSection(
 }
 
 @Composable
-fun DiscountSection() {
+fun DiscountSection(
+    navController: NavController,
+    viewModel: HomeViewModel
+) {
     Column {
         Row(
             Modifier
@@ -392,7 +402,11 @@ fun DiscountSection() {
                 Text(text = "Xem thêm", color = MaterialTheme.colors.primary)
             }
         }
-        DiscountItems()
+        DiscountItems(
+            products = viewModel.stateMostDiscountProducts.value.products,
+            navController = navController,
+            viewModel = viewModel
+        )
     }
 }
 
@@ -407,20 +421,28 @@ fun BestSellerItems(
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         items(products) { item ->
-            if (viewModel.stateImages.value.isLoading) {
+            if (viewModel.stateImages.value.isLoading || viewModel.stateBestSellerProducts.value.isLoading) {
                 CircularProgressIndicator()
             } else {
                 BestSellerItem(
                     product = item,
-                    bitmap = viewModel.stateImages.value.images.first { item.image == it.image }.bitmap
-                )
+                    bitmap = viewModel.stateImages.value.images.first {
+                        item.image == it.image
+                    }.bitmap
+                ){
+                    viewModel._stateProductDetail.value = viewModel.stateProducts.value.products.first { it.id == item.id }
+                    navController.navigate(Screen.ProductDetail.route)
+                }
             }
         }
     }
 }
 
 @Composable
-fun CategoryItems() {
+fun CategoryItems(
+    navController: NavController,
+    viewModel: HomeViewModel
+) {
     LazyRow(
         contentPadding = PaddingValues(vertical = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
@@ -430,59 +452,93 @@ fun CategoryItems() {
                 text = "Thức ăn",
                 icon = painterResource(id = R.drawable.img_category_food),
                 backgroundColor = Color(0xffFEF4E7)
-            )
+            ) {
+                viewModel._stateShowProduct.value = viewModel.stateProducts.value.products.filter { it.category == "Thức ăn" }
+                navController.navigate(Screen.AllProducts.route)
+            }
         }
         item {
             CategoryButton(
                 text = "Dụng cụ",
                 icon = painterResource(id = R.drawable.img_category_equipment),
                 backgroundColor = Color(0xffF6FBF3)
-            )
+            ) {
+                viewModel._stateShowProduct.value = viewModel.stateProducts.value.products.filter { it.category == "Dụng cụ" }
+                navController.navigate(Screen.AllProducts.route)
+            }
         }
         item {
             CategoryButton(
                 text = "Quần áo",
                 icon = painterResource(id = R.drawable.img_category_clothes),
                 backgroundColor = Color(0xffF6FBF3)
-            )
+            ) {
+                viewModel._stateShowProduct.value = viewModel.stateProducts.value.products.filter { it.category == "Quần áo" }
+                navController.navigate(Screen.AllProducts.route)
+            }
         }
         item {
             CategoryButton(
                 text = "Thuốc",
                 icon = painterResource(id = R.drawable.img_category_medicine),
                 backgroundColor = Color(0xffFFFBF3)
-            )
+            ) {
+                viewModel._stateShowProduct.value = viewModel.stateProducts.value.products.filter { it.category == "Thuốc" }
+                navController.navigate(Screen.AllProducts.route)
+            }
         }
         item {
             CategoryButton(
                 text = "Nhà, Chuồng",
                 icon = painterResource(id = R.drawable.img_category_house),
                 backgroundColor = Color(0xffF6E6E9)
-            )
+            ) {
+                viewModel._stateShowProduct.value = viewModel.stateProducts.value.products.filter { it.category == "Nhà, Chuồng" }
+                navController.navigate(Screen.AllProducts.route)
+            }
         }
     }
 }
 
 @Composable
-fun DiscountItems() {
+fun DiscountItems(
+    products: List<Product>,
+    navController: NavController,
+    viewModel: HomeViewModel
+) {
     LazyRow(
         contentPadding = PaddingValues(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
+        items(products) { item ->
+            if (viewModel.stateImages.value.isLoading || viewModel.stateMostDiscountProducts.value.isLoading) {
+                CircularProgressIndicator()
+            } else {
+                BestSellerItem(
+                    product = item,
+                    bitmap = viewModel.stateImages.value.images.first {
+                        item.image == it.image
+                    }.bitmap
+                ){
+                    viewModel._stateProductDetail.value = viewModel.stateProducts.value.products.first { it.id == item.id }
+                    navController.navigate(Screen.ProductDetail.route)
+                }
+            }
+        }
     }
 }
 
 @Composable
 fun BestSellerItem(
     product: Product,
-    discountPercent: Int = 0,
-    bitmap: Bitmap
+    bitmap: Bitmap,
+    onClick: () -> Unit
 ) {
     Card(
         Modifier
-            .width(160.dp)
+            .width(160.dp).clickable { onClick() }
     ) {
-        Column{
+        Column {
             Spacer(modifier = Modifier.height(5.dp))
             Image(
                 bitmap = bitmap.asImageBitmap(), contentDescription = "",
@@ -502,15 +558,15 @@ fun BestSellerItem(
                     modifier = Modifier.padding(top = 10.dp)
                 ) {
                     Text(
-                        "${product.price}đ",
-                        textDecoration = if (discountPercent > 0)
+                        ToMoneyFormat.toMoney(product.price),
+                        textDecoration = if (product.discount > 0)
                             TextDecoration.LineThrough
                         else
                             TextDecoration.None,
-                        color = if (discountPercent > 0) Color.Gray else Color.Black
+                        color = if (product.discount > 0) Color.Gray else Color.Black
                     )
-                    if (discountPercent > 0) {
-                        Text(text = "[$discountPercent%]", color = MaterialTheme.colors.primary)
+                    if (product.discount > 0) {
+                        Text(text = "[${product.discount}%]", color = MaterialTheme.colors.primary)
                     }
                 }
                 Spacer(modifier = Modifier.height(5.dp))

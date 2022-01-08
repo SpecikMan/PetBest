@@ -1,28 +1,29 @@
 package com.specikman.petbest.presentation.main_screen.view_models
 
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.util.Log
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.ktx.Firebase
-import com.google.firebase.storage.ktx.storage
 import com.specikman.petbest.common.Resource
+import com.specikman.petbest.domain.model.Cart
+import com.specikman.petbest.domain.model.Favorite
 import com.specikman.petbest.domain.model.Product
-import com.specikman.petbest.domain.use_case.get_categories.GetCategoriesUseCase
-import com.specikman.petbest.domain.use_case.get_products.GetBestSellerProductsUseCase
-import com.specikman.petbest.domain.use_case.get_products.GetMostDiscountProductsUseCase
-import com.specikman.petbest.domain.use_case.get_products.GetProductImagesFromStorageUseCase
-import com.specikman.petbest.domain.use_case.get_products.GetProductsUseCase
+import com.specikman.petbest.domain.use_case.cart_use_cases.add_cart.AddCartUseCase
+import com.specikman.petbest.domain.use_case.cart_use_cases.get_carts.GetCartsUseCase
+import com.specikman.petbest.domain.use_case.cart_use_cases.update_cart.UpdateCartUseCase
+import com.specikman.petbest.domain.use_case.product_use_cases.favorite.AddFavoriteUseCase
+import com.specikman.petbest.domain.use_case.product_use_cases.favorite.GetFavoriteUseCase
+import com.specikman.petbest.domain.use_case.product_use_cases.get_products.GetBestSellerProductsUseCase
+import com.specikman.petbest.domain.use_case.product_use_cases.get_products.GetMostDiscountProductsUseCase
+import com.specikman.petbest.domain.use_case.product_use_cases.get_products.GetProductImagesFromStorageUseCase
+import com.specikman.petbest.domain.use_case.product_use_cases.get_products.GetProductsUseCase
+import com.specikman.petbest.presentation.main_screen.state.CartsState
+import com.specikman.petbest.presentation.main_screen.state.FavoriteState
 import com.specikman.petbest.presentation.main_screen.state.ImageState
 import com.specikman.petbest.presentation.main_screen.state.ProductsState
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 @HiltViewModel
@@ -31,6 +32,11 @@ class HomeViewModel @Inject constructor(
     private val getBestSellerProductsUseCase: GetBestSellerProductsUseCase,
     private val getProductImagesFromStorageUseCase: GetProductImagesFromStorageUseCase,
     private val getMostDiscountProductsUseCase: GetMostDiscountProductsUseCase,
+    private val getCartsUseCase: GetCartsUseCase,
+    private val addCartUseCase: AddCartUseCase,
+    private val updateCartUseCase: UpdateCartUseCase,
+    private val addFavoriteUseCase: AddFavoriteUseCase,
+    private val getFavoriteUseCase: GetFavoriteUseCase
 ) : ViewModel() {
 
     private val _stateProducts = mutableStateOf(ProductsState())
@@ -51,11 +57,28 @@ class HomeViewModel @Inject constructor(
     val _stateProductDetail = mutableStateOf(Product())
     var stateProductDetail: State<Product> = _stateProductDetail
 
+    private val _stateCarts = mutableStateOf(CartsState())
+    val stateCarts: State<CartsState> = _stateCarts
+
+    private val _stateUpdateCart = mutableStateOf("")
+    val stateUpdateCart: State<String> = _stateUpdateCart
+
+    private val _stateFavorite = mutableStateOf(FavoriteState())
+    val stateFavorite: State<FavoriteState> = _stateFavorite
+
+    private val _stateFavoriteList = mutableStateOf(emptyList<Favorite>())
+    val stateFavoriteList: State<List<Favorite>> = _stateFavoriteList
+
+    val _stateFloatingButton = mutableStateOf(true)
+    var stateFloatingButton: State<Boolean> = _stateFloatingButton
+
     init {
         getProducts()
         getBestSellerProducts()
         getMostDiscountProducts()
         getProductImagesFromStorage()
+        getCarts()
+        getFavorite()
     }
 
     private fun getProducts() {
@@ -79,7 +102,8 @@ class HomeViewModel @Inject constructor(
         getBestSellerProductsUseCase().onEach { result ->
             when (result) {
                 is Resource.Success -> {
-                    _stateBestSellerProducts.value = ProductsState(products = result.data ?: emptyList())
+                    _stateBestSellerProducts.value =
+                        ProductsState(products = result.data ?: emptyList())
                 }
                 is Resource.Loading -> {
                     _stateBestSellerProducts.value = ProductsState(isLoading = true)
@@ -109,11 +133,12 @@ class HomeViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
-    private fun getMostDiscountProducts(){
+    private fun getMostDiscountProducts() {
         getMostDiscountProductsUseCase().onEach { result ->
             when (result) {
                 is Resource.Success -> {
-                    _stateMostDiscountProducts.value = ProductsState(products = result.data ?: emptyList())
+                    _stateMostDiscountProducts.value =
+                        ProductsState(products = result.data ?: emptyList())
                 }
                 is Resource.Loading -> {
                     _stateMostDiscountProducts.value = ProductsState(isLoading = true)
@@ -126,4 +151,81 @@ class HomeViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
+
+    //Cart
+    fun getCarts() {
+        getCartsUseCase().onEach { result ->
+            when (result) {
+                is Resource.Success -> {
+                    _stateCarts.value = CartsState(carts = result.data ?: emptyList())
+                }
+                is Resource.Loading -> {
+                    _stateCarts.value = CartsState(isLoading = true)
+                }
+                is Resource.Error -> {
+                    _stateCarts.value =
+                        CartsState(error = result.message ?: "An unexpected error occurred")
+                }
+            }
+        }.launchIn(viewModelScope)
+    }
+
+    fun addCart(cart: Cart) {
+        addCartUseCase(cart).onEach { result ->
+            when (result) {
+                is Resource.Success -> {
+                }
+                is Resource.Loading -> {
+                }
+                is Resource.Error -> {
+                }
+            }
+        }.launchIn(viewModelScope)
+    }
+
+    fun updateCart(cart: Cart) {
+        updateCartUseCase(cart).onEach { result ->
+            when (result) {
+                is Resource.Success -> {
+                }
+                is Resource.Loading -> {
+                }
+                is Resource.Error -> {
+                }
+            }
+        }.launchIn(viewModelScope)
+    }
+
+    fun addFavorite(favorite: Favorite) = addFavoriteUseCase(favorite).onEach { result ->
+        when (result) {
+            is Resource.Success -> {
+                _stateFavorite.value = FavoriteState(isLike = result.data ?: false)
+            }
+            is Resource.Loading -> {
+                _stateFavorite.value = FavoriteState(isLoading = true)
+            }
+            is Resource.Error -> {
+                _stateFavorite.value = FavoriteState(error = "Error")
+            }
+        }
+    }.launchIn(viewModelScope)
+
+
+    fun getFavorite() {
+        getFavoriteUseCase().onEach { result ->
+            when (result) {
+                is Resource.Success -> {
+                    _stateFavoriteList.value = result.data ?: emptyList<Favorite>()
+                }
+                is Resource.Loading -> {
+                    _stateFavoriteList.value = emptyList<Favorite>()
+                }
+                is Resource.Error -> {
+                    _stateFavoriteList.value =
+                        emptyList<Favorite>()
+                }
+            }
+        }.launchIn(viewModelScope)
+    }
 }
+

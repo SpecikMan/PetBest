@@ -1,9 +1,7 @@
-package com.specikman.petbest.domain.use_case.get_products
+package com.specikman.petbest.domain.use_case.product_use_cases.get_products
 
-import android.graphics.Bitmap
 import com.specikman.petbest.common.Resource
 import com.specikman.petbest.data.remote.dto.Image
-import com.specikman.petbest.domain.model.Product
 import com.specikman.petbest.domain.repository.ImageRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow

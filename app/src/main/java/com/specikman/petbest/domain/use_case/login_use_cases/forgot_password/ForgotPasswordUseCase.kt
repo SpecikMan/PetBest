@@ -1,4 +1,4 @@
-package com.specikman.petbest.domain.use_case.forgot_password
+package com.specikman.petbest.domain.use_case.login_use_cases.forgot_password
 
 import android.content.Context
 import android.widget.Toast

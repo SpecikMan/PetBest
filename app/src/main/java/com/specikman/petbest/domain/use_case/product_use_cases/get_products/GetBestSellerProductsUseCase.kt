@@ -1,4 +1,4 @@
-package com.specikman.petbest.domain.use_case.get_products
+package com.specikman.petbest.domain.use_case.product_use_cases.get_products
 
 import com.specikman.petbest.common.Resource
 import com.specikman.petbest.domain.model.Product

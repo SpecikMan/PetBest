@@ -1,7 +1,6 @@
 package com.specikman.petbest.presentation.login.components
 
 import android.content.Context
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
@@ -15,7 +14,7 @@ import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.specikman.petbest.common.Resource
 import com.specikman.petbest.domain.model.User
-import com.specikman.petbest.domain.use_case.login.LoginWithEmailUseCase
+import com.specikman.petbest.domain.use_case.login_use_cases.login.LoginWithEmailUseCase
 import com.specikman.petbest.presentation.navigation.Screen
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope

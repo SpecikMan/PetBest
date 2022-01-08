@@ -1,0 +1,22 @@
+package com.specikman.petbest.domain.use_case.cart_use_cases.update_cart
+
+import com.specikman.petbest.common.Resource
+import com.specikman.petbest.domain.model.Cart
+import com.specikman.petbest.domain.repository.CartRepository
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import javax.inject.Inject
+
+class UpdateCartUseCase @Inject constructor(
+    private val repository: CartRepository
+) {
+    operator fun invoke(cart: Cart): Flow<Resource<String>> = flow {
+        try{
+            emit(Resource.Loading<String>())
+            repository.updateCart(cart = cart)
+            emit(Resource.Success<String>("Add ok"))
+        }catch(e: Exception){
+            emit(Resource.Error<String>(e.localizedMessage?:"An unexpected error occurred"))
+        }
+    }
+}

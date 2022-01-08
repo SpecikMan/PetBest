@@ -1,4 +1,4 @@
-package com.specikman.petbest.domain.use_case.register
+package com.specikman.petbest.domain.use_case.login_use_cases.register
 
 import android.content.Context
 import android.widget.Toast

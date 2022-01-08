@@ -71,7 +71,7 @@ dependencies {
 
 
     //Coroutine
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.0'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2'
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2'
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.5.2'
 
@@ -104,6 +104,28 @@ dependencies {
     //Jetpack compose flow layout
     implementation "com.google.accompanist:accompanist-flowlayout:0.22.0-rc"
     implementation "com.google.accompanist:accompanist-insets:0.17.0"
+
+    //QR Code
+    implementation 'com.journeyapps:zxing-android-embedded:4.3.0'
+    implementation 'androidmads.library.qrgenearator:QRGenearator:1.0.4'
+    implementation 'com.google.zxing:core:3.4.1'
+
+
+    def camerax_version = "1.0.2"
+    implementation "androidx.camera:camera-core:${camerax_version}"
+    implementation "androidx.camera:camera-camera2:${camerax_version}"
+    implementation "androidx.camera:camera-lifecycle:${camerax_version}"
+    implementation "androidx.camera:camera-view:1.0.0-alpha32"
+
+    //Barcode
+    implementation 'com.google.mlkit:barcode-scanning:17.0.1'
+
+    //Camera Permission
+    implementation "com.google.accompanist:accompanist-permissions:0.19.0"
+
+    //Icon
+    // https://mvnrepository.com/artifact/androidx.compose.material/material-icons-extended
+    implementation 'androidx.compose.material:material-icons-extended:1.1.0-rc01'
 
 
 

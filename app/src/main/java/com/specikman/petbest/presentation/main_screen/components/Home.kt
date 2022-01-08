@@ -1,5 +1,6 @@
 package com.specikman.petbest.presentation.main_screen.components
 
+import android.Manifest
 import android.graphics.Bitmap
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
@@ -27,6 +28,8 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.rememberPermissionState
 import com.specikman.petbest.R
 import com.specikman.petbest.common.ToMoneyFormat
 import com.specikman.petbest.domain.model.Product
@@ -34,6 +37,7 @@ import com.specikman.petbest.presentation.main_screen.view_models.HomeViewModel
 import com.specikman.petbest.presentation.navigation.Screen
 import com.specikman.petbest.presentation.ui.theme.HomeTheme
 
+@ExperimentalPermissionsApi
 @Composable
 fun Home(
     navController: NavController,
@@ -44,6 +48,7 @@ fun Home(
     }
 }
 
+@ExperimentalPermissionsApi
 @Composable
 fun HomeScreen(
     navController: NavController,
@@ -115,13 +120,14 @@ fun AppBar(
     }
 }
 
+@ExperimentalPermissionsApi
 @Composable
 fun Content(
     navController: NavController,
     viewModel: HomeViewModel
 ) {
     Column {
-        Header()
+        Header(navController = navController)
         Spacer(modifier = Modifier.height(16.dp))
         Promotions()
         Spacer(modifier = Modifier.height(16.dp))
@@ -134,8 +140,11 @@ fun Content(
     }
 }
 
+@ExperimentalPermissionsApi
 @Composable
-fun Header() {
+fun Header(
+    navController: NavController
+) {
     Card(
         Modifier
             .height(64.dp)
@@ -147,7 +156,7 @@ fun Header() {
             Modifier.fillMaxSize(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            QrButton()
+            QrButton(navController = navController)
 
             VerticalDivider()
             Row(Modifier
@@ -194,10 +203,18 @@ fun Header() {
     }
 }
 
+@ExperimentalPermissionsApi
 @Composable
-fun QrButton() {
+fun QrButton(
+    navController: NavController
+) {
+    val cameraPermissionState = rememberPermissionState(permission = Manifest.permission.CAMERA)
     IconButton(
         onClick = {
+            if(!cameraPermissionState.hasPermission){
+                cameraPermissionState.launchPermissionRequest()
+            }
+            navController.navigate(Screen.QRScanner.route)
         },
         modifier = Modifier
             .fillMaxHeight()
@@ -372,7 +389,11 @@ fun BestSellerSection(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(text = "Mặt hàng bán chạy", style = MaterialTheme.typography.h6)
-            TextButton(onClick = {}) {
+            TextButton(onClick = {
+                viewModel._stateShowProduct.value =
+                    viewModel.stateProducts.value.products.sortedByDescending { it.bought }
+                navController.navigate(Screen.AllProducts.route)
+            }) {
                 Text(text = "Xem thêm", color = MaterialTheme.colors.primary)
             }
         }
@@ -398,7 +419,11 @@ fun DiscountSection(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(text = "Siêu giảm giá", style = MaterialTheme.typography.h6)
-            TextButton(onClick = {}) {
+            TextButton(onClick = {
+                viewModel._stateShowProduct.value =
+                    viewModel.stateProducts.value.products.sortedByDescending { it.discount }
+                navController.navigate(Screen.AllProducts.route)
+            }) {
                 Text(text = "Xem thêm", color = MaterialTheme.colors.primary)
             }
         }

@@ -47,4 +47,10 @@ object AppModule {
     fun provideImageRepository(api: FirebaseAPI): ImageRepository{
         return ImageRepositoryImpl(api)
     }
+
+    @Provides
+    @Singleton
+    fun provideCartRepository(api: FirebaseAPI): CartRepository{
+        return CartRepositoryImpl(api)
+    }
 }

@@ -1,6 +1,8 @@
 package com.specikman.petbest.presentation.main_screen.components
 
+import android.content.Context
 import android.graphics.Bitmap
+import android.widget.Toast
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -34,10 +36,15 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.google.accompanist.insets.LocalWindowInsets
 import com.google.accompanist.insets.statusBarsPadding
+import com.google.firebase.auth.FirebaseAuth
 import com.specikman.petbest.R
 import com.specikman.petbest.common.Constants.AppBarCollapsedHeight
 import com.specikman.petbest.common.Constants.AppBarExpendedHeight
+import com.specikman.petbest.common.ImageSaver
+import com.specikman.petbest.common.QRGenerator
 import com.specikman.petbest.common.ToMoneyFormat
+import com.specikman.petbest.domain.model.Cart
+import com.specikman.petbest.domain.model.Favorite
 import com.specikman.petbest.domain.model.Product
 import com.specikman.petbest.presentation.main_screen.view_models.HomeViewModel
 import com.specikman.petbest.presentation.ui.theme.Pink
@@ -50,19 +57,36 @@ import kotlin.math.min
 @Composable
 fun ProductDetail(
     navController: NavController,
-    viewModel: HomeViewModel
+    viewModel: HomeViewModel,
+    context: Context
 ) {
     val scrollState = rememberLazyListState()
+    val qrState = remember { mutableStateOf(false)}
     val product = viewModel.stateProductDetail.value
     Box {
-        Content(product, scrollState)
-        ParallaxToolbar(product, scrollState, viewModel.stateImages.value.images.first { it.image == product.image }.bitmap,
-        navController = navController)
+        Content(product, scrollState, viewModel = viewModel, context = context, qrState = qrState)
+        ParallaxToolbar(
+            product,
+            scrollState,
+            viewModel.stateImages.value.images.first { it.image == product.image }.bitmap,
+            navController = navController,
+            viewModel,
+            context
+        )
     }
 }
 
+var amount = 0
+
 @Composable
-fun ParallaxToolbar(product: Product, scrollState: LazyListState, bitmap: Bitmap, navController: NavController) {
+fun ParallaxToolbar(
+    product: Product,
+    scrollState: LazyListState,
+    bitmap: Bitmap,
+    navController: NavController,
+    viewModel: HomeViewModel,
+    context: Context
+) {
     val imageHeight = AppBarExpendedHeight - AppBarCollapsedHeight
 
     val maxOffset =
@@ -153,16 +177,22 @@ fun ParallaxToolbar(product: Product, scrollState: LazyListState, bitmap: Bitmap
             .height(AppBarCollapsedHeight)
             .padding(horizontal = 16.dp)
     ) {
-        CircularButton(R.drawable.ic_arrow_back){
+        CircularButton(R.drawable.ic_arrow_back) {
             navController.popBackStack()
         }
-        CircularButton(R.drawable.ic_favorite)
+        CircularButton(if (viewModel.stateFavorite.value.isLike) R.drawable.ic_baseline_favorite_24 else R.drawable.ic_favorite){
+            viewModel.addFavorite(
+                Favorite(
+                    productId = product.id
+                )
+            )
+        }
     }
 }
 
 @Composable
 fun CircularButton(
-    @DrawableRes iconResouce: Int,
+    @DrawableRes iconResource: Int,
     color: Color = Gray,
     elevation: ButtonElevation? = ButtonDefaults.elevation(),
     onClick: () -> Unit = {}
@@ -177,18 +207,23 @@ fun CircularButton(
             .width(38.dp)
             .height(38.dp)
     ) {
-        Icon(painterResource(id = iconResouce), null)
+        Icon(painterResource(id = iconResource), null)
     }
 }
 
 @Composable
-fun Content(product: Product, scrollState: LazyListState) {
+fun Content(
+    product: Product,
+    scrollState: LazyListState,
+    viewModel: HomeViewModel,
+    context: Context,
+    qrState: MutableState<Boolean>
+) {
     LazyColumn(contentPadding = PaddingValues(top = AppBarExpendedHeight), state = scrollState) {
         item {
-            BasicInfo(product)
             Description(product)
             ServingCalculator()
-            IngredientsHeader()
+            IngredientsHeader(product, viewModel = viewModel, context = context, qrState = qrState)
             DescriptionAndHowToUse(product)
             Spacer(modifier = Modifier.height(50.dp))
         }
@@ -221,7 +256,7 @@ fun DescriptionAndHowToUse(product: Product) {
             fontSize = 20.sp,
             fontWeight = FontWeight.Normal,
         )
-        if(product.how_to_use.isNotEmpty()){
+        if (product.how_to_use.isNotEmpty()) {
             Spacer(modifier = Modifier.height(15.dp))
             Text(
                 text = "Hướng dẫn sử dụng",
@@ -238,8 +273,15 @@ fun DescriptionAndHowToUse(product: Product) {
     }
 }
 
+var isShowQR = false
 @Composable
-fun IngredientsHeader() {
+fun IngredientsHeader(
+    product: Product,
+    viewModel: HomeViewModel,
+    context: Context,
+    qrState: MutableState<Boolean>
+) {
+    val qrTextState = remember{ mutableStateOf("Xuất QR")}
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
@@ -249,15 +291,62 @@ fun IngredientsHeader() {
             .fillMaxWidth()
             .height(44.dp)
     ) {
-        TabButton("Thêm vào giỏ hàng", true, Modifier.weight(1.2f))
-        TabButton("Xuất QR", false, Modifier.weight(1f))
+        TabButton(
+            "Thêm vào giỏ hàng", active = true,
+            Modifier
+                .weight(1.2f)
+        ) {
+            viewModel.updateCart(
+                Cart(
+                    productId = product.id,
+                    amount = amount,
+                    costEach = product.price,
+                    costTotal = product.price * amount
+                )
+            )
+            Toast.makeText(context, "Đã thêm vào giỏ hàng", Toast.LENGTH_LONG).show()
+            viewModel.getCarts()
+        }
+        TabButton(
+            qrTextState.value, false,
+            Modifier
+                .weight(1f)
+        ) {
+            if(qrState.value){
+                qrTextState.value = "Xuất mã QR"
+                qrState.value = false
+            } else {
+                qrTextState.value = "Ẩn mã QR"
+                qrState.value = true
+            }
+        }
     }
+
+    if(qrState.value){
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .padding(horizontal = 16.dp, vertical = 16.dp)
+                .clip(Shapes.medium)
+                .fillMaxWidth()
+                .height(300.dp)
+                ,
+            horizontalArrangement = Arrangement.Center
+        ){
+            Image(
+                bitmap = QRGenerator.generateQRBitmap("product:${product.id}").asImageBitmap(),
+                contentDescription = "",
+                contentScale = ContentScale.Fit
+            )
+        }
+    }
+
 }
 
 @Composable
-fun TabButton(text: String, active: Boolean, modifier: Modifier) {
+fun TabButton(text: String, active: Boolean, modifier: Modifier, onClick: () -> Unit) {
     Button(
-        onClick = { /*TODO*/ },
+        onClick = { onClick() },
         shape = Shapes.medium,
         modifier = modifier.fillMaxHeight(),
         elevation = null,
@@ -287,12 +376,18 @@ fun ServingCalculator() {
 
         Text(text = "Số lượng", Modifier.weight(1f), fontWeight = FontWeight.Medium)
         CircularButton(
-            iconResouce = R.drawable.ic_minus,
+            iconResource = R.drawable.ic_minus,
             elevation = null,
             color = Pink
-        ) { value-- }
+        ) {
+            value--
+            amount = value
+        }
         Text(text = "$value", Modifier.padding(16.dp), fontWeight = FontWeight.Medium)
-        CircularButton(iconResouce = R.drawable.ic_plus, elevation = null, color = Pink) { value++ }
+        CircularButton(iconResource = R.drawable.ic_plus, elevation = null, color = Pink) {
+            value++
+            amount = value
+        }
     }
 }
 
@@ -313,7 +408,7 @@ fun Description(product: Product) {
             fontWeight = FontWeight.Medium
         )
         if (product.discount > 0) {
-            Text(text = "[${product.discount}%]", color = primaryColor,fontSize = 30.sp)
+            Text(text = "[${product.discount}%]", color = primaryColor, fontSize = 30.sp)
         }
     }
     Spacer(modifier = Modifier.height(5.dp))
@@ -326,15 +421,4 @@ fun Description(product: Product) {
     Spacer(modifier = Modifier.height(15.dp))
 }
 
-@Composable
-fun BasicInfo(product: Product) {
-    Row(
-        horizontalArrangement = Arrangement.SpaceEvenly,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 16.dp)
-    ) {
-
-    }
-}
 

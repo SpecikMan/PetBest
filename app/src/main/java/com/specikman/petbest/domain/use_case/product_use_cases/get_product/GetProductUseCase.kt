@@ -1,7 +1,6 @@
-package com.specikman.petbest.domain.use_case.get_product
+package com.specikman.petbest.domain.use_case.product_use_cases.get_product
 
 import com.specikman.petbest.common.Resource
-import com.specikman.petbest.domain.model.Category
 import com.specikman.petbest.domain.model.Product
 import com.specikman.petbest.domain.repository.ProductRepository
 import kotlinx.coroutines.flow.Flow

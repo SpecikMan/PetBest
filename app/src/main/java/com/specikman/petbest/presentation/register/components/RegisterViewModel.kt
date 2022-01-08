@@ -7,9 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import com.specikman.petbest.common.Resource
-import com.specikman.petbest.domain.use_case.login.LoginWithEmailUseCase
-import com.specikman.petbest.domain.use_case.register.RegisterUseCase
-import com.specikman.petbest.presentation.login.components.LoginState
+import com.specikman.petbest.domain.use_case.login_use_cases.register.RegisterUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach

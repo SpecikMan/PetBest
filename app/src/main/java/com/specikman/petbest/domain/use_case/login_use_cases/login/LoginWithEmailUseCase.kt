@@ -1,4 +1,4 @@
-package com.specikman.petbest.domain.use_case.login
+package com.specikman.petbest.domain.use_case.login_use_cases.login
 
 import com.specikman.petbest.common.Resource
 import com.specikman.petbest.domain.repository.LoginRepository

@@ -64,7 +64,7 @@ fun ForgotPasswordPage(
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Text(
-                    text = "KHÔI PHỤC TÀI KHOẢN", fontSize = 30.sp,
+                    text = "KHÔI PHỤC TÀI KHOẢN", fontSize = 25.sp,
                     style = TextStyle(
                         fontWeight = FontWeight.Bold,
                         letterSpacing = 2.sp

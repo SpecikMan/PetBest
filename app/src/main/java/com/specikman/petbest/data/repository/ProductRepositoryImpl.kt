@@ -1,6 +1,7 @@
 package com.specikman.petbest.data.repository
 
 import com.specikman.petbest.data.remote.firebase.FirebaseAPI
+import com.specikman.petbest.domain.model.Favorite
 import com.specikman.petbest.domain.model.Product
 import com.specikman.petbest.domain.repository.ProductRepository
 import javax.inject.Inject
@@ -22,5 +23,13 @@ class ProductRepositoryImpl @Inject constructor(
 
     override suspend fun getProductById(id: Int): Product {
         return api.getProductById(id)
+    }
+
+    override suspend fun getFavoriteProducts(): List<Favorite> {
+        return api.getFavoriteProducts()
+    }
+
+    override suspend fun addProductToFavorite(favorite: Favorite): Boolean {
+        return api.addProductToFavorite(favorite)
     }
 }

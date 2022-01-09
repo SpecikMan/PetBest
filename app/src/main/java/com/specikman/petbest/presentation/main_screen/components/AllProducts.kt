@@ -22,41 +22,45 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.text.toLowerCase
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.google.accompanist.flowlayout.FlowRow
 import com.specikman.petbest.common.ToMoneyFormat
 import com.specikman.petbest.domain.model.Product
 import com.specikman.petbest.presentation.main_screen.view_models.HomeViewModel
+import com.specikman.petbest.presentation.main_screen.view_models.ImageViewModel
 import com.specikman.petbest.presentation.navigation.Screen
 import com.specikman.petbest.presentation.ui.theme.primaryColor
 
 @Composable
 fun AllProducts(
     navController: NavController,
-    viewModel: HomeViewModel
+    homeViewModel: HomeViewModel = hiltViewModel(),
+    imageViewModel: ImageViewModel
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize()
     ) {
         item {
-            SearchBar(viewModel = viewModel)
+            SearchBar(viewModel = homeViewModel)
             Spacer(modifier = Modifier.height(5.dp))
-            TagList(viewModel = viewModel, navController = navController)
+            TagList(viewModel = homeViewModel)
             Spacer(modifier = Modifier.height(5.dp))
-            if (viewModel._stateShowProduct.value.isEmpty()) {
+            if (homeViewModel._stateShowProduct.value.isEmpty()) {
                 Products(
-                    viewModel = viewModel,
-                    products = viewModel.stateProducts.value.products,
-                    navController = navController
+                    viewModel = homeViewModel,
+                    products = homeViewModel.stateProducts.value.products,
+                    navController = navController,
+                    imageViewModel = imageViewModel
                 )
             } else {
                 Products(
-                    viewModel = viewModel,
-                    products = viewModel.stateShowProduct.value,
-                    navController = navController
+                    viewModel = homeViewModel,
+                    products = homeViewModel.stateShowProduct.value,
+                    navController = navController,
+                    imageViewModel = imageViewModel
                 )
             }
             Spacer(modifier = Modifier.height(50.dp))
@@ -98,8 +102,7 @@ fun SearchBar(
 
 @Composable
 fun TagList(
-    viewModel: HomeViewModel,
-    navController: NavController
+    viewModel: HomeViewModel
 ) {
     LazyRow(
         Modifier.height(40.dp),
@@ -190,7 +193,8 @@ fun TAG(
 fun Products(
     products: List<Product>,
     viewModel: HomeViewModel,
-    navController: NavController
+    navController: NavController,
+    imageViewModel: ImageViewModel
 ) {
     FlowRow(
         mainAxisSpacing = 10.dp,
@@ -200,15 +204,14 @@ fun Products(
             .padding(15.dp)
     ) {
         products.forEach { product ->
-            if (viewModel.stateImages.value.isLoading || viewModel.stateProducts.value.isLoading) {
+            if (imageViewModel.stateImages.value.isLoading || viewModel.stateProducts.value.isLoading) {
                 CircularProgressIndicator()
             } else {
                 Product(
                     product = product,
-                    bitmap = viewModel.stateImages.value.images.first { viewModelImage -> product.image == viewModelImage.image }.bitmap
+                    bitmap = imageViewModel.stateImages.value.images.first { viewModelImage -> product.image == viewModelImage.image }.bitmap
                 ) {
-                    viewModel._stateProductDetail.value =
-                        viewModel.stateProducts.value.products.first { it.id == product.id }
+                    imageViewModel._stateProductDetail.value = product
                     navController.navigate(Screen.ProductDetail.route)
                 }
             }
@@ -224,7 +227,8 @@ fun Product(
 ) {
     Card(
         Modifier
-            .width(160.dp).clickable { onClick() }
+            .width(160.dp)
+            .clickable { onClick() }
     ) {
         Column {
             Spacer(modifier = Modifier.height(5.dp))

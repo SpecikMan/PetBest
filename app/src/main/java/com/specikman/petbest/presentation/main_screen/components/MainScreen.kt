@@ -30,6 +30,7 @@ import com.specikman.petbest.presentation.bottom_nav_bar.BottomNavItem
 import com.specikman.petbest.presentation.bottom_nav_bar.components.BottomNavBar
 import com.specikman.petbest.presentation.left_nav_drawer.components.NavigationDrawer
 import com.specikman.petbest.presentation.main_screen.view_models.HomeViewModel
+import com.specikman.petbest.presentation.main_screen.view_models.ImageViewModel
 import com.specikman.petbest.presentation.navigation.NavigationMain
 import com.specikman.petbest.presentation.navigation.Screen
 import com.specikman.petbest.presentation.ui.theme.Orange
@@ -42,7 +43,7 @@ fun MainScreen(
     context: Context
 ) {
     val navControllerM = rememberNavController()
-    val viewModel: HomeViewModel = hiltViewModel()
+    val imageViewModel: ImageViewModel = hiltViewModel()
     var navigateClick by remember { mutableStateOf(false) }
     val offSetAnim by animateDpAsState(targetValue = if (navigateClick) 240.dp else 0.dp)
     val scaleAnim by animateFloatAsState(targetValue = if (navigateClick) 0.7f else 1.0f)
@@ -94,7 +95,7 @@ fun MainScreen(
                         if (it.name == "Menu") {
                             navigateClick = !navigateClick
                         } else{
-                            viewModel._stateFloatingButton.value = true
+                            imageViewModel._stateFloatingButton.value = true
                             navControllerM.navigate(it.route)
                         }
 
@@ -102,7 +103,7 @@ fun MainScreen(
                 )
             },
             floatingActionButton = {
-                if (viewModel.stateFloatingButton.value) {
+                if (imageViewModel.stateFloatingButton.value) {
                     FloatingActionButton(
                         backgroundColor = Orange,
                         content = {
@@ -112,12 +113,12 @@ fun MainScreen(
                             )
                         },
                         onClick = {
-                            viewModel._stateFloatingButton.value = false
+                            imageViewModel._stateFloatingButton.value = false
                             navControllerM.navigate(Screen.CartScreen.route)
                         })
                 } else {
                     FloatingActionButton(onClick = {
-                        viewModel._stateFloatingButton.value = true
+                        imageViewModel._stateFloatingButton.value = true
                         navControllerM.popBackStack() },
                         backgroundColor = Orange,
                         content = {
@@ -129,7 +130,7 @@ fun MainScreen(
                 }
             }
         ) {
-            NavigationMain(navController = navControllerM, context = context, viewModel = viewModel)
+            NavigationMain(navController = navControllerM, context = context, viewModel = imageViewModel)
         }
     }
 }

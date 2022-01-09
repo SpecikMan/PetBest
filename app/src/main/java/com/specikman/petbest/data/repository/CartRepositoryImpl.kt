@@ -19,4 +19,8 @@ class CartRepositoryImpl @Inject constructor(
     override suspend fun updateCart(cart: Cart) {
         api.updateCart(cart = cart)
     }
+
+    override suspend fun deleteCart(cart: Cart) {
+        api.deleteCart(cart = cart)
+    }
 }

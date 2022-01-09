@@ -7,20 +7,21 @@ import androidx.lifecycle.viewModelScope
 import com.specikman.petbest.common.Resource
 import com.specikman.petbest.domain.model.Cart
 import com.specikman.petbest.domain.model.Favorite
+import com.specikman.petbest.domain.model.Order
 import com.specikman.petbest.domain.model.Product
 import com.specikman.petbest.domain.use_case.cart_use_cases.add_cart.AddCartUseCase
+import com.specikman.petbest.domain.use_case.cart_use_cases.delete_cart.DeleteCartUseCase
 import com.specikman.petbest.domain.use_case.cart_use_cases.get_carts.GetCartsUseCase
 import com.specikman.petbest.domain.use_case.cart_use_cases.update_cart.UpdateCartUseCase
+import com.specikman.petbest.domain.use_case.order_use_cases.add_order.AddOrderUseCase
+import com.specikman.petbest.domain.use_case.order_use_cases.get_orders.GetOrdersUseCase
 import com.specikman.petbest.domain.use_case.product_use_cases.favorite.AddFavoriteUseCase
 import com.specikman.petbest.domain.use_case.product_use_cases.favorite.GetFavoriteUseCase
 import com.specikman.petbest.domain.use_case.product_use_cases.get_products.GetBestSellerProductsUseCase
 import com.specikman.petbest.domain.use_case.product_use_cases.get_products.GetMostDiscountProductsUseCase
 import com.specikman.petbest.domain.use_case.product_use_cases.get_products.GetProductImagesFromStorageUseCase
 import com.specikman.petbest.domain.use_case.product_use_cases.get_products.GetProductsUseCase
-import com.specikman.petbest.presentation.main_screen.state.CartsState
-import com.specikman.petbest.presentation.main_screen.state.FavoriteState
-import com.specikman.petbest.presentation.main_screen.state.ImageState
-import com.specikman.petbest.presentation.main_screen.state.ProductsState
+import com.specikman.petbest.presentation.main_screen.state.*
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -30,13 +31,15 @@ import javax.inject.Inject
 class HomeViewModel @Inject constructor(
     private val getProductsUseCase: GetProductsUseCase,
     private val getBestSellerProductsUseCase: GetBestSellerProductsUseCase,
-    private val getProductImagesFromStorageUseCase: GetProductImagesFromStorageUseCase,
     private val getMostDiscountProductsUseCase: GetMostDiscountProductsUseCase,
     private val getCartsUseCase: GetCartsUseCase,
     private val addCartUseCase: AddCartUseCase,
     private val updateCartUseCase: UpdateCartUseCase,
     private val addFavoriteUseCase: AddFavoriteUseCase,
-    private val getFavoriteUseCase: GetFavoriteUseCase
+    private val getFavoriteUseCase: GetFavoriteUseCase,
+    private val deleteCartUseCase: DeleteCartUseCase,
+    private val getOrdersUseCase: GetOrdersUseCase,
+    private val addOrderUseCase: AddOrderUseCase
 ) : ViewModel() {
 
     private val _stateProducts = mutableStateOf(ProductsState())
@@ -48,14 +51,9 @@ class HomeViewModel @Inject constructor(
     private val _stateMostDiscountProducts = mutableStateOf(ProductsState())
     val stateMostDiscountProducts: State<ProductsState> = _stateMostDiscountProducts
 
-    private val _stateImages = mutableStateOf(ImageState())
-    val stateImages: State<ImageState> = _stateImages
-
     val _stateShowProduct = mutableStateOf(_stateProducts.value.products)
     var stateShowProduct: State<List<Product>> = _stateShowProduct
 
-    val _stateProductDetail = mutableStateOf(Product())
-    var stateProductDetail: State<Product> = _stateProductDetail
 
     private val _stateCarts = mutableStateOf(CartsState())
     val stateCarts: State<CartsState> = _stateCarts
@@ -69,14 +67,14 @@ class HomeViewModel @Inject constructor(
     private val _stateFavoriteList = mutableStateOf(emptyList<Favorite>())
     val stateFavoriteList: State<List<Favorite>> = _stateFavoriteList
 
-    val _stateFloatingButton = mutableStateOf(true)
-    var stateFloatingButton: State<Boolean> = _stateFloatingButton
+    private val _stateOrders = mutableStateOf(OrdersState())
+    val stateOrders: State<OrdersState> = _stateOrders
+
 
     init {
         getProducts()
         getBestSellerProducts()
         getMostDiscountProducts()
-        getProductImagesFromStorage()
         getCarts()
         getFavorite()
     }
@@ -116,22 +114,6 @@ class HomeViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
-    private fun getProductImagesFromStorage() {
-        getProductImagesFromStorageUseCase().onEach { result ->
-            when (result) {
-                is Resource.Success -> {
-                    _stateImages.value = ImageState(images = result.data ?: emptyList())
-                }
-                is Resource.Loading -> {
-                    _stateImages.value = ImageState(isLoading = true)
-                }
-                is Resource.Error -> {
-                    _stateImages.value =
-                        ImageState(error = result.message ?: "An unexpected error occurred")
-                }
-            }
-        }.launchIn(viewModelScope)
-    }
 
     private fun getMostDiscountProducts() {
         getMostDiscountProductsUseCase().onEach { result ->
@@ -153,7 +135,7 @@ class HomeViewModel @Inject constructor(
 
 
     //Cart
-    fun getCarts() {
+    private fun getCarts() {
         getCartsUseCase().onEach { result ->
             when (result) {
                 is Resource.Success -> {
@@ -196,6 +178,19 @@ class HomeViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
+    fun deleteCart(cart: Cart) {
+        deleteCartUseCase(cart).onEach { result ->
+            when (result) {
+                is Resource.Success -> {
+                }
+                is Resource.Loading -> {
+                }
+                is Resource.Error -> {
+                }
+            }
+        }.launchIn(viewModelScope)
+    }
+
     fun addFavorite(favorite: Favorite) = addFavoriteUseCase(favorite).onEach { result ->
         when (result) {
             is Resource.Success -> {
@@ -223,6 +218,36 @@ class HomeViewModel @Inject constructor(
                 is Resource.Error -> {
                     _stateFavoriteList.value =
                         emptyList<Favorite>()
+                }
+            }
+        }.launchIn(viewModelScope)
+    }
+
+    private fun getOrders() {
+        getOrdersUseCase().onEach { result ->
+            when (result) {
+                is Resource.Success -> {
+                    _stateOrders.value = OrdersState(orders = result.data ?: emptyList())
+                }
+                is Resource.Loading -> {
+                    _stateOrders.value = OrdersState(isLoading = true)
+                }
+                is Resource.Error -> {
+                    _stateOrders.value =
+                        OrdersState(error = result.message ?: "An unexpected error occurred")
+                }
+            }
+        }.launchIn(viewModelScope)
+    }
+
+    fun addOrder(order: Order){
+        addOrderUseCase(order = order).onEach { result ->
+            when (result) {
+                is Resource.Success -> {
+                }
+                is Resource.Loading -> {
+                }
+                is Resource.Error -> {
                 }
             }
         }.launchIn(viewModelScope)

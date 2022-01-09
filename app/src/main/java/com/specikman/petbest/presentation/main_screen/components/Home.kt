@@ -27,6 +27,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberPermissionState
@@ -34,6 +35,7 @@ import com.specikman.petbest.R
 import com.specikman.petbest.common.ToMoneyFormat
 import com.specikman.petbest.domain.model.Product
 import com.specikman.petbest.presentation.main_screen.view_models.HomeViewModel
+import com.specikman.petbest.presentation.main_screen.view_models.ImageViewModel
 import com.specikman.petbest.presentation.navigation.Screen
 import com.specikman.petbest.presentation.ui.theme.HomeTheme
 
@@ -41,10 +43,11 @@ import com.specikman.petbest.presentation.ui.theme.HomeTheme
 @Composable
 fun Home(
     navController: NavController,
-    viewModel: HomeViewModel
+    imageViewModel: ImageViewModel,
+    homeViewModel: HomeViewModel = hiltViewModel()
 ) {
     HomeTheme {
-        HomeScreen(navController = navController, viewModel = viewModel)
+        HomeScreen(navController = navController, homeViewModel = homeViewModel, imageViewModel = imageViewModel)
     }
 }
 
@@ -52,7 +55,8 @@ fun Home(
 @Composable
 fun HomeScreen(
     navController: NavController,
-    viewModel: HomeViewModel
+    homeViewModel: HomeViewModel,
+    imageViewModel: ImageViewModel
 ) {
     Box(Modifier.verticalScroll(rememberScrollState())) {
         Image(
@@ -64,16 +68,18 @@ fun HomeScreen(
             contentScale = ContentScale.FillWidth
         )
         Column {
-            AppBar(navController = navController, viewModel = viewModel)
-            Content(navController = navController, viewModel = viewModel)
+            AppBar()
+            Content(
+                navController = navController,
+                imageViewModel = imageViewModel,
+                homeViewModel = homeViewModel
+            )
         }
     }
 }
 
 @Composable
 fun AppBar(
-    navController: NavController,
-    viewModel: HomeViewModel
 ) {
 
     val searchValue = remember { mutableStateOf("") }
@@ -124,18 +130,30 @@ fun AppBar(
 @Composable
 fun Content(
     navController: NavController,
-    viewModel: HomeViewModel
+    imageViewModel: ImageViewModel,
+    homeViewModel: HomeViewModel
 ) {
     Column {
-        Header(navController = navController)
+        Header(homeViewModel = homeViewModel, navController = navController, imageViewModel = imageViewModel)
         Spacer(modifier = Modifier.height(16.dp))
         Promotions()
         Spacer(modifier = Modifier.height(16.dp))
-        CategorySection(navController = navController, viewModel = viewModel)
+        CategorySection(
+            navController = navController,
+            homeViewModel = homeViewModel
+        )
         Spacer(modifier = Modifier.height(16.dp))
-        BestSellerSection(navController = navController, viewModel = viewModel)
+        BestSellerSection(
+            navController = navController,
+            imageViewModel = imageViewModel,
+            homeViewModel = homeViewModel
+        )
         Spacer(modifier = Modifier.height(16.dp))
-        DiscountSection(navController = navController, viewModel = viewModel)
+        DiscountSection(
+            navController = navController,
+            imageViewModel = imageViewModel,
+            homeViewModel = homeViewModel
+        )
         Spacer(modifier = Modifier.height(90.dp))
     }
 }
@@ -143,7 +161,9 @@ fun Content(
 @ExperimentalPermissionsApi
 @Composable
 fun Header(
-    navController: NavController
+    homeViewModel: HomeViewModel,
+    navController: NavController,
+    imageViewModel: ImageViewModel
 ) {
     Card(
         Modifier
@@ -156,7 +176,11 @@ fun Header(
             Modifier.fillMaxSize(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            QrButton(navController = navController)
+            QrButton(
+                navController = navController,
+                homeViewModel = homeViewModel,
+                imageViewModel = imageViewModel
+            )
 
             VerticalDivider()
             Row(Modifier
@@ -206,7 +230,9 @@ fun Header(
 @ExperimentalPermissionsApi
 @Composable
 fun QrButton(
-    navController: NavController
+    navController: NavController,
+    homeViewModel: HomeViewModel,
+    imageViewModel: ImageViewModel
 ) {
     val cameraPermissionState = rememberPermissionState(permission = Manifest.permission.CAMERA)
     IconButton(
@@ -214,6 +240,7 @@ fun QrButton(
             if(!cameraPermissionState.hasPermission){
                 cameraPermissionState.launchPermissionRequest()
             }
+            imageViewModel._stateFloatingButton.value = false
             navController.navigate(Screen.QRScanner.route)
         },
         modifier = Modifier
@@ -327,7 +354,7 @@ fun PromotionItem(
 @Composable
 fun CategorySection(
     navController: NavController,
-    viewModel: HomeViewModel
+    homeViewModel: HomeViewModel
 ) {
     Column(Modifier.padding(horizontal = 16.dp)) {
         Row(
@@ -337,7 +364,10 @@ fun CategorySection(
         ) {
             Text(text = "Danh Mục", style = MaterialTheme.typography.h6)
         }
-        CategoryItems(navController = navController, viewModel = viewModel)
+        CategoryItems(
+            navController = navController,
+            homeViewModel = homeViewModel
+        )
     }
 }
 
@@ -378,7 +408,8 @@ fun CategoryButton(
 @Composable
 fun BestSellerSection(
     navController: NavController,
-    viewModel: HomeViewModel
+    imageViewModel: ImageViewModel,
+    homeViewModel: HomeViewModel
 ) {
     Column {
         Row(
@@ -390,17 +421,18 @@ fun BestSellerSection(
         ) {
             Text(text = "Mặt hàng bán chạy", style = MaterialTheme.typography.h6)
             TextButton(onClick = {
-                viewModel._stateShowProduct.value =
-                    viewModel.stateProducts.value.products.sortedByDescending { it.bought }
+                homeViewModel._stateShowProduct.value =
+                    homeViewModel.stateProducts.value.products.sortedByDescending { it.bought }
                 navController.navigate(Screen.AllProducts.route)
             }) {
                 Text(text = "Xem thêm", color = MaterialTheme.colors.primary)
             }
         }
         BestSellerItems(
-            products = viewModel.stateBestSellerProducts.value.products,
+            products = homeViewModel.stateBestSellerProducts.value.products,
             navController = navController,
-            viewModel = viewModel
+            homeViewModel = homeViewModel,
+            imageViewModel = imageViewModel
         )
     }
 }
@@ -408,7 +440,8 @@ fun BestSellerSection(
 @Composable
 fun DiscountSection(
     navController: NavController,
-    viewModel: HomeViewModel
+    imageViewModel: ImageViewModel,
+    homeViewModel: HomeViewModel
 ) {
     Column {
         Row(
@@ -420,17 +453,18 @@ fun DiscountSection(
         ) {
             Text(text = "Siêu giảm giá", style = MaterialTheme.typography.h6)
             TextButton(onClick = {
-                viewModel._stateShowProduct.value =
-                    viewModel.stateProducts.value.products.sortedByDescending { it.discount }
+                homeViewModel._stateShowProduct.value =
+                    homeViewModel.stateProducts.value.products.sortedByDescending { it.discount }
                 navController.navigate(Screen.AllProducts.route)
             }) {
                 Text(text = "Xem thêm", color = MaterialTheme.colors.primary)
             }
         }
         DiscountItems(
-            products = viewModel.stateMostDiscountProducts.value.products,
+            products = homeViewModel.stateMostDiscountProducts.value.products,
             navController = navController,
-            viewModel = viewModel
+            imageViewModel = imageViewModel,
+            homeViewModel = homeViewModel
         )
     }
 }
@@ -439,23 +473,24 @@ fun DiscountSection(
 fun BestSellerItems(
     products: List<Product>,
     navController: NavController,
-    viewModel: HomeViewModel
+    imageViewModel: ImageViewModel,
+    homeViewModel: HomeViewModel
 ) {
     LazyRow(
         contentPadding = PaddingValues(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        items(products) { item ->
-            if (viewModel.stateImages.value.isLoading || viewModel.stateBestSellerProducts.value.isLoading) {
+        items(products) { product ->
+            if (imageViewModel.stateImages.value.isLoading || homeViewModel.stateBestSellerProducts.value.isLoading) {
                 CircularProgressIndicator()
             } else {
                 BestSellerItem(
-                    product = item,
-                    bitmap = viewModel.stateImages.value.images.first {
-                        item.image == it.image
+                    product = product,
+                    bitmap = imageViewModel.stateImages.value.images.first {
+                        product.image == it.image
                     }.bitmap
                 ){
-                    viewModel._stateProductDetail.value = viewModel.stateProducts.value.products.first { it.id == item.id }
+                    imageViewModel._stateProductDetail.value = product
                     navController.navigate(Screen.ProductDetail.route)
                 }
             }
@@ -466,7 +501,7 @@ fun BestSellerItems(
 @Composable
 fun CategoryItems(
     navController: NavController,
-    viewModel: HomeViewModel
+    homeViewModel: HomeViewModel
 ) {
     LazyRow(
         contentPadding = PaddingValues(vertical = 16.dp),
@@ -478,7 +513,7 @@ fun CategoryItems(
                 icon = painterResource(id = R.drawable.img_category_food),
                 backgroundColor = Color(0xffFEF4E7)
             ) {
-                viewModel._stateShowProduct.value = viewModel.stateProducts.value.products.filter { it.category == "Thức ăn" }
+                homeViewModel._stateShowProduct.value = homeViewModel.stateProducts.value.products.filter { it.category == "Thức ăn" }
                 navController.navigate(Screen.AllProducts.route)
             }
         }
@@ -488,7 +523,7 @@ fun CategoryItems(
                 icon = painterResource(id = R.drawable.img_category_equipment),
                 backgroundColor = Color(0xffF6FBF3)
             ) {
-                viewModel._stateShowProduct.value = viewModel.stateProducts.value.products.filter { it.category == "Dụng cụ" }
+                homeViewModel._stateShowProduct.value = homeViewModel.stateProducts.value.products.filter { it.category == "Dụng cụ" }
                 navController.navigate(Screen.AllProducts.route)
             }
         }
@@ -498,7 +533,7 @@ fun CategoryItems(
                 icon = painterResource(id = R.drawable.img_category_clothes),
                 backgroundColor = Color(0xffF6FBF3)
             ) {
-                viewModel._stateShowProduct.value = viewModel.stateProducts.value.products.filter { it.category == "Quần áo" }
+                homeViewModel._stateShowProduct.value = homeViewModel.stateProducts.value.products.filter { it.category == "Quần áo" }
                 navController.navigate(Screen.AllProducts.route)
             }
         }
@@ -508,7 +543,7 @@ fun CategoryItems(
                 icon = painterResource(id = R.drawable.img_category_medicine),
                 backgroundColor = Color(0xffFFFBF3)
             ) {
-                viewModel._stateShowProduct.value = viewModel.stateProducts.value.products.filter { it.category == "Thuốc" }
+                homeViewModel._stateShowProduct.value = homeViewModel.stateProducts.value.products.filter { it.category == "Thuốc" }
                 navController.navigate(Screen.AllProducts.route)
             }
         }
@@ -518,7 +553,7 @@ fun CategoryItems(
                 icon = painterResource(id = R.drawable.img_category_house),
                 backgroundColor = Color(0xffF6E6E9)
             ) {
-                viewModel._stateShowProduct.value = viewModel.stateProducts.value.products.filter { it.category == "Nhà, Chuồng" }
+                homeViewModel._stateShowProduct.value = homeViewModel.stateProducts.value.products.filter { it.category == "Nhà, Chuồng" }
                 navController.navigate(Screen.AllProducts.route)
             }
         }
@@ -529,23 +564,24 @@ fun CategoryItems(
 fun DiscountItems(
     products: List<Product>,
     navController: NavController,
-    viewModel: HomeViewModel
+    imageViewModel: ImageViewModel,
+    homeViewModel: HomeViewModel
 ) {
     LazyRow(
         contentPadding = PaddingValues(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        items(products) { item ->
-            if (viewModel.stateImages.value.isLoading || viewModel.stateMostDiscountProducts.value.isLoading) {
+        items(products) { product ->
+            if (imageViewModel.stateImages.value.isLoading || homeViewModel.stateMostDiscountProducts.value.isLoading) {
                 CircularProgressIndicator()
             } else {
                 BestSellerItem(
-                    product = item,
-                    bitmap = viewModel.stateImages.value.images.first {
-                        item.image == it.image
+                    product = product,
+                    bitmap = imageViewModel.stateImages.value.images.first {
+                        product.image == it.image
                     }.bitmap
                 ){
-                    viewModel._stateProductDetail.value = viewModel.stateProducts.value.products.first { it.id == item.id }
+                    imageViewModel._stateProductDetail.value = product
                     navController.navigate(Screen.ProductDetail.route)
                 }
             }
@@ -561,7 +597,8 @@ fun BestSellerItem(
 ) {
     Card(
         Modifier
-            .width(160.dp).clickable { onClick() }
+            .width(160.dp)
+            .clickable { onClick() }
     ) {
         Column {
             Spacer(modifier = Modifier.height(5.dp))

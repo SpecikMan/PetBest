@@ -23,6 +23,7 @@ class FirebaseAPI {
     private val categoryRef = Firebase.firestore.collection("categories")
     private val cartRef = Firebase.firestore.collection("carts")
     private val favoriteRef = Firebase.firestore.collection("favorites")
+    private val orderRef = Firebase.firestore.collection("orders")
 
     //Storage
     private val storageRef = Firebase.storage
@@ -210,8 +211,9 @@ class FirebaseAPI {
             auth = FirebaseAuth.getInstance()
             cart.id = getCarts().size + 1
             cart.userUID = auth.currentUser?.uid.toString()
-            val cartSize = getCarts().filter { it.productId == cart.productId && it.userUID == cart.userUID }.size
-            if(cartSize==0){
+            val cartSize =
+                getCarts().filter { it.productId == cart.productId && it.userUID == cart.userUID }.size
+            if (cartSize == 0) {
                 cartRef.add(cart).await()
             } else {
                 val map = mutableMapOf<String, Any>().apply {
@@ -222,7 +224,8 @@ class FirebaseAPI {
                     this["costEach"] = cart.costEach
                     this["costTotal"] = cart.costTotal
                 }
-                val query = cartRef.whereEqualTo("userUID", cart.userUID).whereEqualTo("productId",cart.productId).get().await()
+                val query = cartRef.whereEqualTo("userUID", cart.userUID)
+                    .whereEqualTo("productId", cart.productId).get().await()
                 if (query.documents.isNotEmpty()) {
                     for (document in query) {
                         cartRef.document(document.id).set(
@@ -232,7 +235,22 @@ class FirebaseAPI {
                     }
                 }
             }
-        }catch(e: Exception){
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    suspend fun deleteCart(cart: Cart) = CoroutineScope(Dispatchers.IO).launch {
+        try {
+            auth = FirebaseAuth.getInstance()
+            val query = cartRef.whereEqualTo("userUID", auth.currentUser?.uid)
+                .whereEqualTo("productId", cart.productId).get().await()
+            if (query.documents.isNotEmpty()) {
+                for (document in query.documents) {
+                    cartRef.document(document.id).delete()
+                }
+            }
+        } catch (e: Exception) {
             e.printStackTrace()
         }
     }
@@ -253,28 +271,56 @@ class FirebaseAPI {
         return@async favorites
     }.await()
 
-    suspend fun addProductToFavorite(favorite: Favorite): Boolean = CoroutineScope(Dispatchers.IO).async{
-        try {
-            auth = FirebaseAuth.getInstance()
-            favorite.userUID = auth.currentUser?.uid.toString()
-            val favoriteProducts = getFavoriteProducts().filter {
-                it.userUID == auth.currentUser?.uid && it.productId == favorite.productId
-            }.size
-            if(favoriteProducts==0){
-                favoriteRef.add(favorite).await()
-                true
-            } else {
-                val query = favoriteRef.whereEqualTo("userUID", favorite.userUID).whereEqualTo("productId",favorite.productId).get().await()
-                if (query.documents.isNotEmpty()) {
-                    for (document in query.documents) {
-                        favoriteRef.document(document.id).delete()
+    suspend fun addProductToFavorite(favorite: Favorite): Boolean =
+        CoroutineScope(Dispatchers.IO).async {
+            try {
+                auth = FirebaseAuth.getInstance()
+                favorite.userUID = auth.currentUser?.uid.toString()
+                val favoriteProducts = getFavoriteProducts().filter {
+                    it.userUID == auth.currentUser?.uid && it.productId == favorite.productId
+                }.size
+                if (favoriteProducts == 0) {
+                    favoriteRef.add(favorite).await()
+                    true
+                } else {
+                    val query = favoriteRef.whereEqualTo("userUID", favorite.userUID)
+                        .whereEqualTo("productId", favorite.productId).get().await()
+                    if (query.documents.isNotEmpty()) {
+                        for (document in query.documents) {
+                            favoriteRef.document(document.id).delete()
+                        }
                     }
+                    false
                 }
+            } catch (e: Exception) {
+                e.printStackTrace()
                 false
             }
-        }catch(e: Exception){
+        }.await()
+
+    //Order
+
+    suspend fun getOrders(): List<Order> = CoroutineScope(Dispatchers.IO).async {
+        try {
+            val orders = mutableListOf<Order>()
+            val snapshot = orderRef.get().await()
+            if (snapshot.documents.isNotEmpty()) {
+                for (document in snapshot.documents) {
+                    orders.add(document.toObject(Order::class.java) ?: Order())
+                }
+            }
+            orders
+        } catch (e: Exception) {
             e.printStackTrace()
-            false
+            emptyList<Order>()
         }
     }.await()
+
+    suspend fun addOrder(order: Order) = CoroutineScope(Dispatchers.IO).launch {
+        try {
+            orderRef.add(order).await()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
 }

@@ -2,6 +2,7 @@ package com.specikman.petbest.presentation.main_screen.components
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.util.Log
 import android.widget.Toast
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
@@ -33,20 +34,21 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.SavedStateHandle
 import androidx.navigation.NavController
 import com.google.accompanist.insets.LocalWindowInsets
 import com.google.accompanist.insets.statusBarsPadding
-import com.google.firebase.auth.FirebaseAuth
 import com.specikman.petbest.R
 import com.specikman.petbest.common.Constants.AppBarCollapsedHeight
 import com.specikman.petbest.common.Constants.AppBarExpendedHeight
-import com.specikman.petbest.common.ImageSaver
 import com.specikman.petbest.common.QRGenerator
 import com.specikman.petbest.common.ToMoneyFormat
 import com.specikman.petbest.domain.model.Cart
 import com.specikman.petbest.domain.model.Favorite
 import com.specikman.petbest.domain.model.Product
 import com.specikman.petbest.presentation.main_screen.view_models.HomeViewModel
+import com.specikman.petbest.presentation.main_screen.view_models.ImageViewModel
 import com.specikman.petbest.presentation.ui.theme.Pink
 import com.specikman.petbest.presentation.ui.theme.Shapes
 import com.specikman.petbest.presentation.ui.theme.Transparent
@@ -57,22 +59,30 @@ import kotlin.math.min
 @Composable
 fun ProductDetail(
     navController: NavController,
-    viewModel: HomeViewModel,
+    imageViewModel: ImageViewModel,
+    homeViewModel: HomeViewModel = hiltViewModel(),
     context: Context
 ) {
-    val scrollState = rememberLazyListState()
-    val qrState = remember { mutableStateOf(false)}
-    val product = viewModel.stateProductDetail.value
-    Box {
-        Content(product, scrollState, viewModel = viewModel, context = context, qrState = qrState)
-        ParallaxToolbar(
-            product,
-            scrollState,
-            viewModel.stateImages.value.images.first { it.image == product.image }.bitmap,
-            navController = navController,
-            viewModel,
-            context
-        )
+    if(!imageViewModel.stateImages.value.isLoading){
+        val scrollState = rememberLazyListState()
+        val qrState = remember { mutableStateOf(false)}
+        val product = imageViewModel.stateProductDetail.value
+        Box {
+            Content(
+                product = product,
+                scrollState = scrollState,
+                homeViewModel = homeViewModel,
+                context = context,
+                qrState = qrState
+            )
+            ParallaxToolbar(
+                product,
+                scrollState,
+                imageViewModel.stateImages.value.images.first { it.image == product.image }.bitmap,
+                navController = navController,
+                homeViewModel = homeViewModel
+            )
+        }
     }
 }
 
@@ -84,8 +94,7 @@ fun ParallaxToolbar(
     scrollState: LazyListState,
     bitmap: Bitmap,
     navController: NavController,
-    viewModel: HomeViewModel,
-    context: Context
+    homeViewModel: HomeViewModel
 ) {
     val imageHeight = AppBarExpendedHeight - AppBarCollapsedHeight
 
@@ -180,8 +189,8 @@ fun ParallaxToolbar(
         CircularButton(R.drawable.ic_arrow_back) {
             navController.popBackStack()
         }
-        CircularButton(if (viewModel.stateFavorite.value.isLike) R.drawable.ic_baseline_favorite_24 else R.drawable.ic_favorite){
-            viewModel.addFavorite(
+        CircularButton(if (homeViewModel.stateFavorite.value.isLike) R.drawable.ic_baseline_favorite_24 else R.drawable.ic_favorite){
+            homeViewModel.addFavorite(
                 Favorite(
                     productId = product.id
                 )
@@ -215,7 +224,7 @@ fun CircularButton(
 fun Content(
     product: Product,
     scrollState: LazyListState,
-    viewModel: HomeViewModel,
+    homeViewModel: HomeViewModel,
     context: Context,
     qrState: MutableState<Boolean>
 ) {
@@ -223,7 +232,7 @@ fun Content(
         item {
             Description(product)
             ServingCalculator()
-            IngredientsHeader(product, viewModel = viewModel, context = context, qrState = qrState)
+            IngredientsHeader(product, viewModel = homeViewModel, context = context, qrState = qrState)
             DescriptionAndHowToUse(product)
             Spacer(modifier = Modifier.height(50.dp))
         }
@@ -273,7 +282,6 @@ fun DescriptionAndHowToUse(product: Product) {
     }
 }
 
-var isShowQR = false
 @Composable
 fun IngredientsHeader(
     product: Product,
@@ -305,7 +313,6 @@ fun IngredientsHeader(
                 )
             )
             Toast.makeText(context, "Đã thêm vào giỏ hàng", Toast.LENGTH_LONG).show()
-            viewModel.getCarts()
         }
         TabButton(
             qrTextState.value, false,
@@ -393,15 +400,14 @@ fun ServingCalculator() {
 
 @Composable
 fun Description(product: Product) {
-    Row(
-    ) {
+    Row {
         Text(
             ToMoneyFormat.toMoney(product.price),
             textDecoration = if (product.discount > 0)
                 TextDecoration.LineThrough
             else
                 TextDecoration.None,
-            color = if (product.discount > 0) Color.Gray else Color.Black,
+            color = if (product.discount > 0) Gray else Color.Black,
             modifier = Modifier.padding(horizontal = 16.dp),
             fontSize = 30.sp,
             fontFamily = FontFamily.Monospace,

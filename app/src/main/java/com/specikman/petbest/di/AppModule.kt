@@ -53,4 +53,10 @@ object AppModule {
     fun provideCartRepository(api: FirebaseAPI): CartRepository{
         return CartRepositoryImpl(api)
     }
+
+    @Provides
+    @Singleton
+    fun provideOrderRepository(api: FirebaseAPI): OrderRepository{
+        return OrderRepositoryImpl(api)
+    }
 }

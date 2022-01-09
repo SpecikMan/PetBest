@@ -18,11 +18,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.common.util.concurrent.ListenableFuture
+import com.google.firebase.auth.FirebaseAuth
 import com.specikman.petbest.common.BarCodeAnalyser
+import com.specikman.petbest.domain.model.Cart
 import com.specikman.petbest.presentation.main_screen.view_models.HomeViewModel
+import com.specikman.petbest.presentation.main_screen.view_models.ImageViewModel
 import com.specikman.petbest.presentation.navigation.Screen
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -33,13 +37,13 @@ import java.util.concurrent.Executors
 fun QRScanner(
     context: Context,
     navController: NavController,
-    viewModel: HomeViewModel
+    imageViewModel: ImageViewModel
 ) {
     Surface(color = MaterialTheme.colors.background) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            CameraPreview(context = context, navController = navController, viewModel = viewModel)
+            CameraPreview(context = context, navController = navController, imageViewModel = imageViewModel)
         }
     }
 
@@ -50,12 +54,15 @@ fun QRScanner(
 fun CameraPreview(
     context: Context,
     navController: NavController,
-    viewModel: HomeViewModel
+    imageViewModel: ImageViewModel,
+    homeViewModel: HomeViewModel = hiltViewModel()
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
     var preview by remember { mutableStateOf<Preview?>(null) }
     val barCodeVal = remember { mutableStateOf("") }
+    val auth = FirebaseAuth.getInstance()
 
+    if(!homeViewModel.stateProducts.value.isLoading && !homeViewModel.stateCarts.value.isLoading && !homeViewModel.stateOrders.value.isLoading)
     AndroidView(
         factory = { AndroidViewContext ->
             PreviewView(AndroidViewContext).apply {
@@ -87,12 +94,24 @@ fun CameraPreview(
                         barcode.rawValue?.let { barcodeValue ->
                             barCodeVal.value = barcodeValue
                             val result = barCodeVal.value.split(":")
-                            if (result[0] == "product") {
-                                viewModel._stateProductDetail.value =
-                                    viewModel.stateProducts.value.products.first { it.id == result[1].toInt() }
-                                navController.navigate(Screen.ProductDetail.route)
-                            } else {
-
+                            when(result[0]){
+                                "product" -> {
+                                    imageViewModel._stateFloatingButton.value = true
+                                    navController.popBackStack()
+                                    navController.navigate(Screen.ProductDetail.route)
+                                }
+                                "cart" -> {
+                                    imageViewModel._stateFloatingButton.value = false
+                                    homeViewModel.stateCarts.value.carts.forEach { cart ->
+                                        auth.currentUser?.uid?.let { uid ->
+                                            cart.also {
+                                                it.userUID = uid
+                                                homeViewModel.addCart(it)
+                                            }
+                                            navController.navigate(Screen.CartScreen.route)
+                                        }
+                                    }
+                                }
                             }
                         }
                     }

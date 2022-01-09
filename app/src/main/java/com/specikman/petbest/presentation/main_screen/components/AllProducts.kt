@@ -44,11 +44,11 @@ fun AllProducts(
         modifier = Modifier.fillMaxSize()
     ) {
         item {
-            SearchBar(viewModel = homeViewModel)
+            SearchBar(viewModel = homeViewModel, imageViewModel = imageViewModel)
             Spacer(modifier = Modifier.height(5.dp))
-            TagList(viewModel = homeViewModel)
+            TagList(viewModel = homeViewModel, imageViewModel = imageViewModel)
             Spacer(modifier = Modifier.height(5.dp))
-            if (homeViewModel._stateShowProduct.value.isEmpty()) {
+            if (imageViewModel._stateShowProduct.value.isEmpty()) {
                 Products(
                     viewModel = homeViewModel,
                     products = homeViewModel.stateProducts.value.products,
@@ -58,7 +58,7 @@ fun AllProducts(
             } else {
                 Products(
                     viewModel = homeViewModel,
-                    products = homeViewModel.stateShowProduct.value,
+                    products = imageViewModel.stateShowProduct.value,
                     navController = navController,
                     imageViewModel = imageViewModel
                 )
@@ -70,7 +70,8 @@ fun AllProducts(
 
 @Composable
 fun SearchBar(
-    viewModel: HomeViewModel
+    viewModel: HomeViewModel,
+    imageViewModel: ImageViewModel
 ) {
     val searchValue = remember { mutableStateOf("") }
     Row(
@@ -84,7 +85,7 @@ fun SearchBar(
             value = searchValue.value,
             onValueChange = { newValue ->
                 searchValue.value = newValue
-                viewModel._stateShowProduct.value = viewModel.stateProducts.value.products.filter {
+                imageViewModel._stateShowProduct.value = viewModel.stateProducts.value.products.filter {
                     it.name.lowercase().contains(newValue.lowercase())
                 }
             },
@@ -102,7 +103,8 @@ fun SearchBar(
 
 @Composable
 fun TagList(
-    viewModel: HomeViewModel
+    viewModel: HomeViewModel,
+    imageViewModel: ImageViewModel
 ) {
     LazyRow(
         Modifier.height(40.dp),
@@ -111,51 +113,51 @@ fun TagList(
     ) {
         item {
             TAG(tag = "Tất cả") {
-                viewModel._stateShowProduct.value = viewModel.stateProducts.value.products
+                imageViewModel._stateShowProduct.value = viewModel.stateProducts.value.products
             }
             Spacer(modifier = Modifier.width(4.dp))
             TAG(tag = "Thức ăn") {
-                viewModel._stateShowProduct.value =
+                imageViewModel._stateShowProduct.value =
                     viewModel.stateProducts.value.products.filter { it.category == "Thức ăn" }
             }
             Spacer(modifier = Modifier.width(4.dp))
             TAG(tag = "Dụng cụ") {
-                viewModel._stateShowProduct.value =
+                imageViewModel._stateShowProduct.value =
                     viewModel.stateProducts.value.products.filter { it.category == "Dụng cụ" }
             }
             Spacer(modifier = Modifier.width(4.dp))
             TAG(tag = "Quần áo") {
-                viewModel._stateShowProduct.value =
+                imageViewModel._stateShowProduct.value =
                     viewModel.stateProducts.value.products.filter { it.category == "Quần áo" }
             }
             Spacer(modifier = Modifier.width(4.dp))
             TAG(tag = "Nhà Chuồng") {
-                viewModel._stateShowProduct.value =
+                imageViewModel._stateShowProduct.value =
                     viewModel.stateProducts.value.products.filter { it.category == "Nhà, Chuồng" }
             }
             Spacer(modifier = Modifier.width(4.dp))
             TAG(tag = "Thuốc") {
-                viewModel._stateShowProduct.value =
+                imageViewModel._stateShowProduct.value =
                     viewModel.stateProducts.value.products.filter { it.category == "Thuốc" }
             }
             Spacer(modifier = Modifier.width(4.dp))
             TAG(tag = "Bán chạy") {
-                viewModel._stateShowProduct.value =
+                imageViewModel._stateShowProduct.value =
                     viewModel.stateProducts.value.products.sortedByDescending { it.bought }
             }
             Spacer(modifier = Modifier.width(4.dp))
             TAG(tag = "Giảm giá sâu") {
-                viewModel._stateShowProduct.value =
+                imageViewModel._stateShowProduct.value =
                     viewModel.stateProducts.value.products.sortedByDescending { it.discount }
             }
             Spacer(modifier = Modifier.width(4.dp))
             TAG(tag = "Giá cao đến thấp") {
-                viewModel._stateShowProduct.value =
+                imageViewModel._stateShowProduct.value =
                     viewModel.stateProducts.value.products.sortedByDescending { it.price }
             }
             Spacer(modifier = Modifier.width(4.dp))
             TAG(tag = "Giá thấp đến cao") {
-                viewModel._stateShowProduct.value =
+                imageViewModel._stateShowProduct.value =
                     viewModel.stateProducts.value.products.sortedBy { it.price }
             }
             Spacer(modifier = Modifier.width(4.dp))

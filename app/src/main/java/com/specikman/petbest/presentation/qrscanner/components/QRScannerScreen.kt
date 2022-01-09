@@ -3,6 +3,7 @@ package com.specikman.petbest.presentation.qrscanner.components
 import android.content.Context
 import android.util.Log
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.Preview
@@ -43,7 +44,11 @@ fun QRScanner(
         Column(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            CameraPreview(context = context, navController = navController, imageViewModel = imageViewModel)
+            CameraPreview(
+                context = context,
+                navController = navController,
+                imageViewModel = imageViewModel
+            )
         }
     }
 
@@ -62,78 +67,119 @@ fun CameraPreview(
     val barCodeVal = remember { mutableStateOf("") }
     val auth = FirebaseAuth.getInstance()
 
-    if(!homeViewModel.stateProducts.value.isLoading && !homeViewModel.stateCarts.value.isLoading && !homeViewModel.stateOrders.value.isLoading)
-    AndroidView(
-        factory = { AndroidViewContext ->
-            PreviewView(AndroidViewContext).apply {
-                this.scaleType = PreviewView.ScaleType.FILL_CENTER
-                layoutParams = ViewGroup.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                )
-                implementationMode = PreviewView.ImplementationMode.COMPATIBLE
-            }
-        },
-        modifier = Modifier
-            .fillMaxSize(),
-        update = { previewView ->
-            val cameraSelector: CameraSelector = CameraSelector.Builder()
-                .requireLensFacing(CameraSelector.LENS_FACING_BACK)
-                .build()
-            val cameraExecutor: ExecutorService = Executors.newSingleThreadExecutor()
-            val cameraProviderFuture: ListenableFuture<ProcessCameraProvider> =
-                ProcessCameraProvider.getInstance(context)
-
-            cameraProviderFuture.addListener({
-                preview = Preview.Builder().build().also {
-                    it.setSurfaceProvider(previewView.surfaceProvider)
+    if (!homeViewModel.stateProducts.value.isLoading && !homeViewModel.stateCarts.value.isLoading && !homeViewModel.stateOrders.value.isLoading)
+        AndroidView(
+            factory = { AndroidViewContext ->
+                PreviewView(AndroidViewContext).apply {
+                    this.scaleType = PreviewView.ScaleType.FILL_CENTER
+                    layoutParams = ViewGroup.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                    )
+                    implementationMode = PreviewView.ImplementationMode.COMPATIBLE
                 }
-                val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
-                val barcodeAnalyser = BarCodeAnalyser { barcodes ->
-                    barcodes.forEach { barcode ->
-                        barcode.rawValue?.let { barcodeValue ->
-                            barCodeVal.value = barcodeValue
-                            val result = barCodeVal.value.split(":")
-                            when(result[0]){
-                                "product" -> {
-                                    imageViewModel._stateFloatingButton.value = true
-                                    navController.popBackStack()
-                                    navController.navigate(Screen.ProductDetail.route)
-                                }
-                                "cart" -> {
-                                    imageViewModel._stateFloatingButton.value = false
-                                    homeViewModel.stateCarts.value.carts.forEach { cart ->
-                                        auth.currentUser?.uid?.let { uid ->
-                                            cart.also {
-                                                it.userUID = uid
-                                                homeViewModel.addCart(it)
-                                            }
-                                            navController.navigate(Screen.CartScreen.route)
+            },
+            modifier = Modifier
+                .fillMaxSize(),
+            update = { previewView ->
+                val cameraSelector: CameraSelector = CameraSelector.Builder()
+                    .requireLensFacing(CameraSelector.LENS_FACING_BACK)
+                    .build()
+                val cameraExecutor: ExecutorService = Executors.newSingleThreadExecutor()
+                val cameraProviderFuture: ListenableFuture<ProcessCameraProvider> =
+                    ProcessCameraProvider.getInstance(context)
+
+                cameraProviderFuture.addListener({
+                    preview = Preview.Builder().build().also {
+                        it.setSurfaceProvider(previewView.surfaceProvider)
+                    }
+                    val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
+                    val barcodeAnalyser = BarCodeAnalyser { barcodes ->
+                        barcodes.forEach { barcode ->
+                            barcode.rawValue?.let { barcodeValue ->
+                                barCodeVal.value = barcodeValue
+                                val result = barCodeVal.value.split(":")
+                                when (result[0]) {
+                                    "product" -> {
+                                        imageViewModel._stateProductDetail.value = homeViewModel.stateProducts.value.products.first { it.id == result[1].toInt() }
+                                        imageViewModel._stateFloatingButton.value = true
+                                        navController.popBackStack()
+                                        navController.navigate(Screen.ProductDetail.route)
+                                    }
+                                    "cart" -> {
+                                        imageViewModel._stateFloatingButton.value = true
+                                        val newCarts =
+                                            homeViewModel.stateCarts.value.carts.filter { it.userUID == result[1] }
+                                        val currentCarts =
+                                            homeViewModel.stateCarts.value.carts.filter { it.userUID == auth.currentUser?.uid }
+                                        currentCarts.forEach { cart ->
+                                            homeViewModel.deleteCart(cart)
                                         }
+                                        newCarts.forEach { cart ->
+                                            auth.currentUser?.uid?.let { uid ->
+                                                cart.also {
+                                                    it.userUID = uid
+                                                    homeViewModel.addCart(it)
+                                                }
+                                            }
+                                        }
+                                        Toast.makeText(context, "Sao chép giỏ hàng thành công", Toast.LENGTH_LONG).show()
+                                        navController.navigate(Screen.Home.route)
+                                    }
+                                    "order" -> {
+                                        imageViewModel._stateFloatingButton.value = true
+                                        val currentCarts = homeViewModel.stateCarts.value.carts.filter { it.userUID == auth.currentUser?.uid }
+                                        currentCarts.forEach { cart ->
+                                            homeViewModel.deleteCart(cart)
+                                        }
+                                        val newCarts = mutableListOf<Cart>()
+                                        val cartId = homeViewModel.stateCarts.value.carts.size + 1
+                                        val newOrders = homeViewModel.stateOrders.value.orders.filter { it.userUID == result[1] && it.id == result[2].toInt() }
+                                        newOrders.forEach {
+                                            newCarts.add(Cart(
+                                                id = cartId,
+                                                productId = it.productId,
+                                                amount = it.amount,
+                                                userUID =  it.userUID,
+                                                costEach = it.costEach,
+                                                costTotal = it.costTotal
+                                            ))
+                                        }
+                                        newCarts.forEach {
+                                            auth.currentUser?.uid?.let { uid ->
+                                                it.also {
+                                                    it.userUID = uid
+                                                    homeViewModel.addCart(it)
+                                                }
+                                            }
+                                        }
+                                        Toast.makeText(context, "Sao chép vào giỏ hàng thành công", Toast.LENGTH_LONG).show()
+                                        navController.navigate(Screen.Home.route)
+                                    }
+                                    else -> {
                                     }
                                 }
                             }
                         }
                     }
-                }
-                val imageAnalysis: ImageAnalysis = ImageAnalysis.Builder()
-                    .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-                    .build()
-                    .also {
-                        it.setAnalyzer(cameraExecutor, barcodeAnalyser)
-                    }
+                    val imageAnalysis: ImageAnalysis = ImageAnalysis.Builder()
+                        .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                        .build()
+                        .also {
+                            it.setAnalyzer(cameraExecutor, barcodeAnalyser)
+                        }
 
-                try {
-                    cameraProvider.unbindAll()
-                    cameraProvider.bindToLifecycle(
-                        lifecycleOwner,
-                        cameraSelector,
-                        preview,
-                        imageAnalysis
-                    )
-                } catch (e: Exception) {
-                    Log.d("TAG", "CameraPreview: ${e.localizedMessage}")
-                }
-            }, ContextCompat.getMainExecutor(context))
-        })
+                    try {
+                        cameraProvider.unbindAll()
+                        cameraProvider.bindToLifecycle(
+                            lifecycleOwner,
+                            cameraSelector,
+                            preview,
+                            imageAnalysis
+                        )
+                    } catch (e: Exception) {
+                        Log.d("TAG", "CameraPreview: ${e.localizedMessage}")
+                    }
+                }, ContextCompat.getMainExecutor(context))
+            })
 }

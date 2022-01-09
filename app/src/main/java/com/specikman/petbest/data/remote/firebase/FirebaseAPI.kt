@@ -24,6 +24,7 @@ class FirebaseAPI {
     private val cartRef = Firebase.firestore.collection("carts")
     private val favoriteRef = Firebase.firestore.collection("favorites")
     private val orderRef = Firebase.firestore.collection("orders")
+    private val serviceRef = Firebase.firestore.collection("services")
 
     //Storage
     private val storageRef = Firebase.storage
@@ -323,4 +324,20 @@ class FirebaseAPI {
             e.printStackTrace()
         }
     }
+    //Services
+    suspend fun getServices(): List<Service> = CoroutineScope(Dispatchers.IO).async {
+        try {
+            val services = mutableListOf<Service>()
+            val snapshot = serviceRef.get().await()
+            if (snapshot.documents.isNotEmpty()) {
+                for (document in snapshot.documents) {
+                    services.add(document.toObject(Service::class.java) ?: Service())
+                }
+            }
+            services
+        } catch (e: Exception) {
+            e.printStackTrace()
+            emptyList<Service>()
+        }
+    }.await()
 }

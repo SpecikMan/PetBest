@@ -81,7 +81,7 @@ class LoginViewModel @Inject constructor(
                             launchSingleTop = true
                         }
                     } else {
-                        navController.navigate(Screen.MainScreen.route) {
+                        navController.navigate(Screen.SplashScreen.route) {
                             launchSingleTop = true
                         }
                     }

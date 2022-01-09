@@ -59,4 +59,10 @@ object AppModule {
     fun provideOrderRepository(api: FirebaseAPI): OrderRepository{
         return OrderRepositoryImpl(api)
     }
+
+    @Provides
+    @Singleton
+    fun provideServiceRepository(api: FirebaseAPI): ServiceRepository{
+        return ServiceRepositoryImpl(api)
+    }
 }

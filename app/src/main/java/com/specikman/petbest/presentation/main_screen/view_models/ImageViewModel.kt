@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.specikman.petbest.common.Resource
+import com.specikman.petbest.domain.model.Order
 import com.specikman.petbest.domain.model.Product
 import com.specikman.petbest.domain.use_case.product_use_cases.get_products.GetProductImagesFromStorageUseCase
 import com.specikman.petbest.presentation.main_screen.state.ImageState
@@ -25,6 +26,12 @@ class ImageViewModel @Inject constructor(
 
     val _stateProductDetail = mutableStateOf(Product())
     var stateProductDetail: State<Product> = _stateProductDetail
+
+    val _stateOrderDetail = mutableStateOf(Order())
+    var stateOrderDetail: State<Order> = _stateOrderDetail
+
+    val _stateShowProduct = mutableStateOf(emptyList<Product>())
+    var stateShowProduct: State<List<Product>> = _stateShowProduct
 
     init {
         getProductImagesFromStorage()

@@ -173,6 +173,7 @@ fun RegisterPage(
                                     context = context,
                                     navController = navController
                                     )
+                                navController.navigate(Screen.SplashScreen.route)
                             } else {
                                 Toast.makeText(
                                     context,

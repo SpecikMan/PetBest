@@ -14,6 +14,10 @@ val nunitoFamily = FontFamily(
     Font(R.font.nunito_bold, FontWeight.Bold)
 )
 
+val railwayFamily = FontFamily(
+    Font(R.font.raleway_regular, FontWeight.Normal)
+)
+
 val Typography = Typography(
     defaultFontFamily = nunitoFamily
 )

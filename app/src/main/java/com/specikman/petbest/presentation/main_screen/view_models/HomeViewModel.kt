@@ -1,18 +1,17 @@
 package com.specikman.petbest.presentation.main_screen.view_models
 
+import android.telephony.ServiceState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.specikman.petbest.common.Resource
-import com.specikman.petbest.domain.model.Cart
-import com.specikman.petbest.domain.model.Favorite
-import com.specikman.petbest.domain.model.Order
-import com.specikman.petbest.domain.model.Product
+import com.specikman.petbest.domain.model.*
 import com.specikman.petbest.domain.use_case.cart_use_cases.add_cart.AddCartUseCase
 import com.specikman.petbest.domain.use_case.cart_use_cases.delete_cart.DeleteCartUseCase
 import com.specikman.petbest.domain.use_case.cart_use_cases.get_carts.GetCartsUseCase
 import com.specikman.petbest.domain.use_case.cart_use_cases.update_cart.UpdateCartUseCase
+import com.specikman.petbest.domain.use_case.get_services.GetServicesUseCase
 import com.specikman.petbest.domain.use_case.order_use_cases.add_order.AddOrderUseCase
 import com.specikman.petbest.domain.use_case.order_use_cases.get_orders.GetOrdersUseCase
 import com.specikman.petbest.domain.use_case.product_use_cases.favorite.AddFavoriteUseCase
@@ -39,7 +38,8 @@ class HomeViewModel @Inject constructor(
     private val getFavoriteUseCase: GetFavoriteUseCase,
     private val deleteCartUseCase: DeleteCartUseCase,
     private val getOrdersUseCase: GetOrdersUseCase,
-    private val addOrderUseCase: AddOrderUseCase
+    private val addOrderUseCase: AddOrderUseCase,
+    private val getServicesUseCase: GetServicesUseCase
 ) : ViewModel() {
 
     private val _stateProducts = mutableStateOf(ProductsState())
@@ -51,8 +51,8 @@ class HomeViewModel @Inject constructor(
     private val _stateMostDiscountProducts = mutableStateOf(ProductsState())
     val stateMostDiscountProducts: State<ProductsState> = _stateMostDiscountProducts
 
-    val _stateShowProduct = mutableStateOf(_stateProducts.value.products)
-    var stateShowProduct: State<List<Product>> = _stateShowProduct
+    private val _stateServices = mutableStateOf(ServicesState())
+    val stateServices: State<ServicesState> = _stateServices
 
 
     private val _stateCarts = mutableStateOf(CartsState())
@@ -77,6 +77,8 @@ class HomeViewModel @Inject constructor(
         getMostDiscountProducts()
         getCarts()
         getFavorite()
+        getOrders()
+        getServices()
     }
 
     private fun getProducts() {
@@ -248,6 +250,23 @@ class HomeViewModel @Inject constructor(
                 is Resource.Loading -> {
                 }
                 is Resource.Error -> {
+                }
+            }
+        }.launchIn(viewModelScope)
+    }
+
+    private fun getServices() {
+        getServicesUseCase().onEach { result ->
+            when (result) {
+                is Resource.Success -> {
+                    _stateServices.value = ServicesState(services = result.data ?: emptyList())
+                }
+                is Resource.Loading -> {
+                    _stateServices.value = ServicesState(isLoading = true)
+                }
+                is Resource.Error -> {
+                    _stateServices.value =
+                        ServicesState(error = result.message ?: "An unexpected error occurred")
                 }
             }
         }.launchIn(viewModelScope)

@@ -170,7 +170,7 @@ fun LoginPage(
                                     "Login Success: UID: ${auth.currentUser?.uid}",
                                     Toast.LENGTH_LONG
                                 ).show()
-                                navController.navigate(Screen.MainScreen.route){
+                                navController.navigate(Screen.SplashScreen.route){
                                     launchSingleTop = true
                                 }
                             }

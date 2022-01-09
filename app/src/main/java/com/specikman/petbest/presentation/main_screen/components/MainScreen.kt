@@ -40,10 +40,10 @@ import com.specikman.petbest.presentation.ui.theme.Orange
 @ExperimentalAnimationApi
 @Composable
 fun MainScreen(
-    context: Context
+    context: Context,
+    imageViewModel: ImageViewModel
 ) {
     val navControllerM = rememberNavController()
-    val imageViewModel: ImageViewModel = hiltViewModel()
     var navigateClick by remember { mutableStateOf(false) }
     val offSetAnim by animateDpAsState(targetValue = if (navigateClick) 240.dp else 0.dp)
     val scaleAnim by animateFloatAsState(targetValue = if (navigateClick) 0.7f else 1.0f)
@@ -76,18 +76,23 @@ fun MainScreen(
                         ),
                         BottomNavItem(
                             name = "Trang chủ",
-                            route = "home",
+                            route = Screen.Home.route,
                             icon = Icons.Default.Home
                         ),
                         BottomNavItem(
                             name = "Tất cả mặt hàng",
-                            route = "all_products",
+                            route = Screen.AllProducts.route,
                             icon = Icons.Default.Menu
                         ),
                         BottomNavItem(
-                            name = "Dịch vụ chăm sóc",
-                            route = "search",
-                            icon = Icons.Default.CheckCircle
+                            name = "Thanh toán",
+                            route = Screen.OrderScreen.route,
+                            icon = Icons.Default.History
+                        ),
+                        BottomNavItem(
+                            name = "Dịch vụ khác",
+                            route = Screen.PetCareScreen.route,
+                            icon = Icons.Default.Pets
                         )
                     ),
                     navController = navControllerM,

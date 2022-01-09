@@ -48,7 +48,7 @@ fun Cart(
     val auth = FirebaseAuth.getInstance()
     if (!homeViewModel.stateCarts.value.isLoading && !homeViewModel.stateProducts.value.isLoading) {
         val totalPrice =
-            remember { mutableStateOf(homeViewModel.stateCarts.value.carts.sumOf { it.costTotal }) }
+            remember { mutableStateOf(homeViewModel.stateCarts.value.carts.filter {  it.userUID == auth.currentUser?.uid}.sumOf { it.costTotal })}
         val cartsState = remember { mutableStateOf(homeViewModel.stateCarts.value.carts) }
         val qrState = remember { mutableStateOf(false) }
         LazyColumn(
@@ -278,11 +278,11 @@ fun Product(
             Text(text = product.name, fontWeight = FontWeight.Bold, fontSize = 16.sp)
             Text(text = "Số lượng: ${amountState.value}", fontSize = 13.sp, color = Color.Gray)
             Text(
-                text = "Giá mua sản phẩm: ${product.price} ",
+                text = "Giá mua sản phẩm: ${ToMoneyFormat.toMoney(product.price)} ",
                 fontSize = 13.sp,
                 color = primaryColor
             )
-            Text(text = "Giá tổng: ${priceTotalState.value}", fontSize = 16.sp, color = Orange)
+            Text(text = "Giá tổng: ${ToMoneyFormat.toMoney(priceTotalState.value)}", fontSize = 16.sp, color = Orange)
             Spacer(modifier = Modifier.weight(1f))
             Row(
                 horizontalArrangement = Arrangement.SpaceBetween

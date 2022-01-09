@@ -27,7 +27,9 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.google.accompanist.flowlayout.FlowRow
+import com.google.firebase.auth.FirebaseAuth
 import com.specikman.petbest.common.ToMoneyFormat
+import com.specikman.petbest.domain.model.History
 import com.specikman.petbest.domain.model.Product
 import com.specikman.petbest.presentation.main_screen.view_models.HomeViewModel
 import com.specikman.petbest.presentation.main_screen.view_models.ImageViewModel
@@ -213,6 +215,15 @@ fun Products(
                     product = product,
                     bitmap = imageViewModel.stateImages.value.images.first { viewModelImage -> product.image == viewModelImage.image }.bitmap
                 ) {
+                    val auth = FirebaseAuth.getInstance()
+                    auth.currentUser?.uid?.let{
+                        viewModel.addHistory(
+                            History(
+                            uid = it,
+                            productId = product.id
+                        )
+                        )
+                    }
                     imageViewModel._stateProductDetail.value = product
                     navController.navigate(Screen.ProductDetail.route)
                 }

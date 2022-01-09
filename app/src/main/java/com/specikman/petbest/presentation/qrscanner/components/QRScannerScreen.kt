@@ -26,6 +26,7 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.google.firebase.auth.FirebaseAuth
 import com.specikman.petbest.common.BarCodeAnalyser
 import com.specikman.petbest.domain.model.Cart
+import com.specikman.petbest.domain.model.History
 import com.specikman.petbest.presentation.main_screen.view_models.HomeViewModel
 import com.specikman.petbest.presentation.main_screen.view_models.ImageViewModel
 import com.specikman.petbest.presentation.navigation.Screen
@@ -101,6 +102,12 @@ fun CameraPreview(
                                 val result = barCodeVal.value.split(":")
                                 when (result[0]) {
                                     "product" -> {
+                                        auth.currentUser?.uid?.let{
+                                            homeViewModel.addHistory(History(
+                                                uid = it,
+                                                productId = result[1].toInt(),
+                                            ))
+                                        }
                                         imageViewModel._stateProductDetail.value = homeViewModel.stateProducts.value.products.first { it.id == result[1].toInt() }
                                         imageViewModel._stateFloatingButton.value = true
                                         navController.popBackStack()

@@ -48,7 +48,13 @@ fun NavigationMain(navController: NavHostController, context: Context, viewModel
             FavoriteScreen(imageViewModel = viewModel, navController = navController)
         }
         composable(route = Screen.SettingScreen.route){
-            SettingScreen()
+            SettingScreen(context = context, navController = navController)
+        }
+        composable(route = Screen.AccountScreen.route){
+            AccountScreen(context = context)
+        }
+        composable(route = Screen.HistoryScreen.route){
+            HistoryScreen(imageViewModel = viewModel , navController = navController)
         }
     }
 }

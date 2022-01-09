@@ -38,6 +38,8 @@ fun ExtraInfoForGoogle(
 
     val nameValue = remember{ mutableStateOf("")}
 
+    val creditCard = remember{ mutableStateOf("")}
+
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
         Box(
             modifier = Modifier
@@ -90,12 +92,22 @@ fun ExtraInfoForGoogle(
                         modifier = Modifier.fillMaxWidth(0.8f)
                     )
                     Spacer(modifier = Modifier.padding(10.dp))
+                    OutlinedTextField(
+                        value = creditCard.value,
+                        onValueChange = { creditCard.value = it },
+                        label = { Text(text = "Thẻ ghi nợ") },
+                        placeholder = { Text(text = "Thẻ ghi nợ") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(0.8f)
+                    )
+                    Spacer(modifier = Modifier.padding(10.dp))
                     //Event click
                     Button(
                         onClick = {
                             viewModel.saveExtraInfo(
                                 phone = phoneValue.value,
                                 name = nameValue.value,
+                                creditCard = creditCard.value,
                                 context = context,
                                 navController = navController
                             )

@@ -12,6 +12,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import com.jakewharton.processphoenix.ProcessPhoenix
 import com.specikman.petbest.common.Resource
 import com.specikman.petbest.domain.model.User
 import com.specikman.petbest.domain.use_case.login_use_cases.login.LoginWithEmailUseCase
@@ -70,21 +71,23 @@ class LoginViewModel @Inject constructor(
                 withContext(Dispatchers.Main) {
                     Toast.makeText(
                         context,
-                        "Login Success",
+                        "Đăng nhập thành công",
                         Toast.LENGTH_LONG
                     ).show()
-                    val currentEmail = auth.currentUser?.email ?: ""
-                    val querySnapshot =
-                        userCollectionRef.whereEqualTo("email",currentEmail).get().await()
-                    if (querySnapshot.isEmpty) {
-                        navController.navigate(Screen.ExtraInfoForGoogle.route) {
-                            launchSingleTop = true
+                    auth.currentUser?.uid?.let {
+                        val currentEmail = auth.currentUser?.email ?: ""
+                        val querySnapshot =
+                            userCollectionRef.whereEqualTo("email", currentEmail).get().await()
+                        if (querySnapshot.isEmpty) {
+                            navController.navigate(Screen.ExtraInfoForGoogle.route) {
+                                launchSingleTop = true
+                            }
+                        } else {
+                            navController.navigate(Screen.SplashScreen.route) {
+                                launchSingleTop = true
+                            }
                         }
-                    } else {
-                        navController.navigate(Screen.SplashScreen.route) {
-                            launchSingleTop = true
-                        }
-                    }
+                    }?: ProcessPhoenix.triggerRebirth(context)
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
@@ -98,6 +101,7 @@ class LoginViewModel @Inject constructor(
     fun saveExtraInfo(
         phone: String,
         name: String,
+        creditCard: String,
         context: Context,
         navController: NavController
     ) = CoroutineScope(Dispatchers.IO).launch {
@@ -105,7 +109,7 @@ class LoginViewModel @Inject constructor(
             val currentEmail = it.email ?: ""
             val uid = it.uid
             val querySnapshot =
-                userCollectionRef.whereEqualTo("email",currentEmail).get().await()
+                userCollectionRef.whereEqualTo("email", currentEmail).get().await()
             if (querySnapshot.isEmpty) {
                 try {
                     userCollectionRef.add(
@@ -113,12 +117,13 @@ class LoginViewModel @Inject constructor(
                             email = currentEmail,
                             name = name,
                             phone = phone,
-                            uid = uid
+                            uid = uid,
+                            creditCard = creditCard
                         )
                     ).await()
                     withContext(Dispatchers.Main) {
                         Toast.makeText(context, "Lưu thành công", Toast.LENGTH_LONG).show()
-                        navController.navigate(Screen.MainScreen.route){
+                        navController.navigate(Screen.MainScreen.route) {
                             launchSingleTop = true
                         }
                     }

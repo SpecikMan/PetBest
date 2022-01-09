@@ -12,6 +12,8 @@ import com.specikman.petbest.domain.use_case.cart_use_cases.delete_cart.DeleteCa
 import com.specikman.petbest.domain.use_case.cart_use_cases.get_carts.GetCartsUseCase
 import com.specikman.petbest.domain.use_case.cart_use_cases.update_cart.UpdateCartUseCase
 import com.specikman.petbest.domain.use_case.get_services.GetServicesUseCase
+import com.specikman.petbest.domain.use_case.history_use_cases.AddHistoryUseCase
+import com.specikman.petbest.domain.use_case.history_use_cases.GetHistoryUseCase
 import com.specikman.petbest.domain.use_case.order_use_cases.add_order.AddOrderUseCase
 import com.specikman.petbest.domain.use_case.order_use_cases.get_orders.GetOrdersUseCase
 import com.specikman.petbest.domain.use_case.product_use_cases.favorite.AddFavoriteUseCase
@@ -20,6 +22,8 @@ import com.specikman.petbest.domain.use_case.product_use_cases.get_products.GetB
 import com.specikman.petbest.domain.use_case.product_use_cases.get_products.GetMostDiscountProductsUseCase
 import com.specikman.petbest.domain.use_case.product_use_cases.get_products.GetProductImagesFromStorageUseCase
 import com.specikman.petbest.domain.use_case.product_use_cases.get_products.GetProductsUseCase
+import com.specikman.petbest.domain.use_case.user_use_cases.GetUsersUseCase
+import com.specikman.petbest.domain.use_case.user_use_cases.UpdateUserUseCase
 import com.specikman.petbest.presentation.main_screen.state.*
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.launchIn
@@ -39,7 +43,11 @@ class HomeViewModel @Inject constructor(
     private val deleteCartUseCase: DeleteCartUseCase,
     private val getOrdersUseCase: GetOrdersUseCase,
     private val addOrderUseCase: AddOrderUseCase,
-    private val getServicesUseCase: GetServicesUseCase
+    private val getServicesUseCase: GetServicesUseCase,
+    private val getUsersUseCase: GetUsersUseCase,
+    private val updateUserUseCase: UpdateUserUseCase,
+    private val getHistoryUseCase: GetHistoryUseCase,
+    private val addHistoryUseCase: AddHistoryUseCase
 ) : ViewModel() {
 
     private val _stateProducts = mutableStateOf(ProductsState())
@@ -70,6 +78,12 @@ class HomeViewModel @Inject constructor(
     private val _stateOrders = mutableStateOf(OrdersState())
     val stateOrders: State<OrdersState> = _stateOrders
 
+    private val _stateUsers = mutableStateOf(UsersState())
+    val stateUsers: State<UsersState> = _stateUsers
+
+    private val _stateHistory = mutableStateOf(HistoryState())
+    val stateHistory: State<HistoryState> = _stateHistory
+
 
     init {
         getProducts()
@@ -79,6 +93,8 @@ class HomeViewModel @Inject constructor(
         getFavorite()
         getOrders()
         getServices()
+        getUsers()
+        getHistory()
     }
 
     private fun getProducts() {
@@ -267,6 +283,66 @@ class HomeViewModel @Inject constructor(
                 is Resource.Error -> {
                     _stateServices.value =
                         ServicesState(error = result.message ?: "An unexpected error occurred")
+                }
+            }
+        }.launchIn(viewModelScope)
+    }
+
+    private fun getUsers() {
+        getUsersUseCase().onEach { result ->
+            when (result) {
+                is Resource.Success -> {
+                    _stateUsers.value = UsersState(users = result.data ?: emptyList())
+                }
+                is Resource.Loading -> {
+                    _stateUsers.value = UsersState(isLoading = true)
+                }
+                is Resource.Error -> {
+                    _stateUsers.value =
+                        UsersState(error = result.message ?: "An unexpected error occurred")
+                }
+            }
+        }.launchIn(viewModelScope)
+    }
+
+    fun updateUser(user: User){
+        updateUserUseCase(user = user).onEach { result ->
+            when (result) {
+                is Resource.Success -> {
+                }
+                is Resource.Loading -> {
+                }
+                is Resource.Error -> {
+                }
+            }
+        }.launchIn(viewModelScope)
+    }
+
+    private fun getHistory() {
+        getHistoryUseCase().onEach { result ->
+            when (result) {
+                is Resource.Success -> {
+                    _stateHistory.value = HistoryState(history = result.data ?: emptyList())
+                }
+                is Resource.Loading -> {
+                    _stateHistory.value = HistoryState(isLoading = true)
+                }
+                is Resource.Error -> {
+                    _stateHistory.value =
+                        HistoryState(error = result.message ?: "An unexpected error occurred")
+                }
+            }
+        }.launchIn(viewModelScope)
+    }
+
+    fun addHistory(history: History){
+        addHistoryUseCase(history = history).onEach { result ->
+            when (result) {
+                is Resource.Success -> {
+                }
+                is Resource.Loading -> {
+                }
+                is Resource.Error -> {
                 }
             }
         }.launchIn(viewModelScope)

@@ -25,6 +25,7 @@ class FirebaseAPI {
     private val favoriteRef = Firebase.firestore.collection("favorites")
     private val orderRef = Firebase.firestore.collection("orders")
     private val serviceRef = Firebase.firestore.collection("services")
+    private val historyRef = Firebase.firestore.collection("history")
 
     //Storage
     private val storageRef = Firebase.storage
@@ -324,6 +325,7 @@ class FirebaseAPI {
             e.printStackTrace()
         }
     }
+
     //Services
     suspend fun getServices(): List<Service> = CoroutineScope(Dispatchers.IO).async {
         try {
@@ -340,4 +342,69 @@ class FirebaseAPI {
             emptyList<Service>()
         }
     }.await()
+
+    //Users
+    suspend fun getUsers(): List<User> = CoroutineScope(Dispatchers.IO).async {
+        try {
+            val users = mutableListOf<User>()
+            val snapshot = userCollectionRef.get().await()
+            if (snapshot.documents.isNotEmpty()) {
+                for (document in snapshot.documents) {
+                    users.add(document.toObject(User::class.java) ?: User())
+                }
+            }
+            users
+        } catch (e: Exception) {
+            e.printStackTrace()
+            emptyList()
+        }
+    }.await()
+
+    suspend fun updateUser(user: User) = CoroutineScope(Dispatchers.IO).launch {
+        try {
+            val map = mutableMapOf<String, Any>().apply {
+                this["uid"] = user.uid
+                this["name"] = user.name
+                this["email"] = user.email
+                this["phone"] = user.phone
+                this["creditCard"] = user.creditCard
+                this["balance"] = user.balance
+            }
+            val query = userCollectionRef.whereEqualTo("uid", user.uid).get().await()
+            if (query.documents.isNotEmpty()) {
+                for (document in query) {
+                    userCollectionRef.document(document.id).set(
+                        map,
+                        SetOptions.merge()
+                    ).await()
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+    //History
+    suspend fun getHistory(): List<History> = CoroutineScope(Dispatchers.IO).async {
+        try {
+            val history = mutableListOf<History>()
+            val snapshot = historyRef.get().await()
+            if (snapshot.documents.isNotEmpty()) {
+                for (document in snapshot.documents) {
+                    history.add(document.toObject(History::class.java) ?: History())
+                }
+            }
+            history
+        } catch (e: Exception) {
+            e.printStackTrace()
+            emptyList()
+        }
+    }.await()
+
+    suspend fun addHistory(history: History) = CoroutineScope(Dispatchers.IO).launch {
+        try {
+            historyRef.add(history).await()
+        }catch(e: Exception){
+            e.printStackTrace()
+        }
+    }
 }

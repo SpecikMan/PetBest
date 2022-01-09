@@ -65,4 +65,16 @@ object AppModule {
     fun provideServiceRepository(api: FirebaseAPI): ServiceRepository{
         return ServiceRepositoryImpl(api)
     }
+
+    @Provides
+    @Singleton
+    fun provideUserRepository(api: FirebaseAPI): UserRepository{
+        return UserRepositoryImpl(api)
+    }
+
+    @Provides
+    @Singleton
+    fun provideHistoryRepository(api: FirebaseAPI): HistoryRepository{
+        return HistoryRepositoryImpl(api)
+    }
 }

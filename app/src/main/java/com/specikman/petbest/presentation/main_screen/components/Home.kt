@@ -34,6 +34,7 @@ import com.google.accompanist.permissions.rememberPermissionState
 import com.google.firebase.auth.FirebaseAuth
 import com.specikman.petbest.R
 import com.specikman.petbest.common.ToMoneyFormat
+import com.specikman.petbest.domain.model.History
 import com.specikman.petbest.domain.model.Product
 import com.specikman.petbest.presentation.main_screen.view_models.HomeViewModel
 import com.specikman.petbest.presentation.main_screen.view_models.ImageViewModel
@@ -198,46 +199,52 @@ fun Header(
             )
 
             VerticalDivider()
-            Row(Modifier
-                .fillMaxHeight()
-                .weight(1f)
-                .clickable { }
-                .padding(horizontal = 8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_money),
-                    contentDescription = "",
-                    tint = Color(0xFF6FCF97)
-                )
-                Column(Modifier.padding(8.dp)) {
-                    Text(text = "560.000đ", fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                    Text(
-                        text = "Tiền trong tài khoản",
-                        color = MaterialTheme.colors.primary,
-                        fontSize = 12.sp
+            if(!homeViewModel.stateUsers.value.isLoading){
+                Row(Modifier
+                    .fillMaxHeight()
+                    .weight(1f)
+                    .clickable { }
+                    .padding(horizontal = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_money),
+                        contentDescription = "",
+                        tint = Color(0xFF6FCF97)
                     )
+                    val auth = FirebaseAuth.getInstance()
+                    val user = homeViewModel.stateUsers.value.users.first { it.uid == auth.currentUser?.uid }
+                    Column(Modifier.padding(8.dp)) {
+                        Text(text = ToMoneyFormat.toMoney(user.balance), fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                        Text(
+                            text = "Tiền trong tài khoản",
+                            color = MaterialTheme.colors.primary,
+                            fontSize = 12.sp
+                        )
+                    }
                 }
             }
-            val totalPrice = homeViewModel.stateCarts.value.carts.filter { it.userUID == auth.currentUser?.uid }.sumOf { it.costTotal }
-            VerticalDivider()
-            Row(Modifier
-                .fillMaxHeight()
-                .weight(1f)
-                .clickable {
-                    navController.navigate(Screen.CartScreen.route)
-                }
-                .padding(horizontal = 8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_coin),
-                    contentDescription = "",
-                    tint = MaterialTheme.colors.primary
-                )
-                Column(Modifier.padding(8.dp)) {
-                    Text(text = ToMoneyFormat.toMoney(totalPrice), fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                    Text(text = "Chi phí giỏ hàng", color = Color.LightGray, fontSize = 12.sp)
+            if(!homeViewModel.stateCarts.value.isLoading){
+                val totalPrice = homeViewModel.stateCarts.value.carts.filter { it.userUID == auth.currentUser?.uid }.sumOf { it.costTotal }
+                VerticalDivider()
+                Row(Modifier
+                    .fillMaxHeight()
+                    .weight(1f)
+                    .clickable {
+                        navController.navigate(Screen.CartScreen.route)
+                    }
+                    .padding(horizontal = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_coin),
+                        contentDescription = "",
+                        tint = MaterialTheme.colors.primary
+                    )
+                    Column(Modifier.padding(8.dp)) {
+                        Text(text = ToMoneyFormat.toMoney(totalPrice), fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                        Text(text = "Chi phí giỏ hàng", color = Color.LightGray, fontSize = 12.sp)
+                    }
                 }
             }
         }
@@ -509,6 +516,15 @@ fun BestSellerItems(
                         product.image == it.image
                     }.bitmap
                 ) {
+                    val auth = FirebaseAuth.getInstance()
+                    auth.currentUser?.uid?.let{
+                        homeViewModel.addHistory(
+                            History(
+                            uid = it,
+                            productId = product.id,
+                        )
+                        )
+                    }
                     imageViewModel._stateProductDetail.value = product
                     navController.navigate(Screen.ProductDetail.route)
                 }
@@ -606,6 +622,15 @@ fun DiscountItems(
                         product.image == it.image
                     }.bitmap
                 ) {
+                    val auth = FirebaseAuth.getInstance()
+                    auth.currentUser?.uid?.let{
+                        homeViewModel.addHistory(
+                            History(
+                                uid = it,
+                                productId = product.id,
+                            )
+                        )
+                    }
                     imageViewModel._stateProductDetail.value = product
                     navController.navigate(Screen.ProductDetail.route)
                 }

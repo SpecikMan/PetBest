@@ -18,14 +18,13 @@ fun NavigationItem(
     resId: Int,
     text: String,
     topPadding: Dp = 20.dp,
-    destination: String = "",
-    itemClicked: (String) -> Unit
+    itemClicked: () -> Unit
 ) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(start = 38.dp, top = topPadding)
-            .clickable { itemClicked(destination) }
+            .clickable { itemClicked() }
     ) {
         Row(
             horizontalArrangement = Arrangement.spacedBy(12.dp)

@@ -42,7 +42,13 @@ fun NavigationMain(navController: NavHostController, context: Context, viewModel
             OrderDetail(imageViewModel = viewModel)
         }
         composable(route = Screen.PetCareScreen.route){
-            PetCare()
+            PetCare(context = context, navController = navController)
+        }
+        composable(route = Screen.FavoriteScreen.route){
+            FavoriteScreen(imageViewModel = viewModel, navController = navController)
+        }
+        composable(route = Screen.SettingScreen.route){
+            SettingScreen()
         }
     }
 }

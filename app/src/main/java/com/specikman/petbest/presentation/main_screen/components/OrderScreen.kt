@@ -40,7 +40,7 @@ fun OrderScreen(
     auth = FirebaseAuth.getInstance()
     if (!homeViewModel.stateOrders.value.isLoading) {
         val ordersState =
-            remember { mutableStateOf(homeViewModel.stateOrders.value.orders.filter { it.userUID == auth.currentUser?.uid }) }
+            remember { mutableStateOf(homeViewModel.stateOrders.value.orders.filter { it.userUID == auth.currentUser?.uid && it.type == "Mua hàng" }) }
         LazyColumn(
             modifier = Modifier.padding(16.dp)
         ) {
@@ -88,7 +88,7 @@ fun HeaderBackOrder(
             modifier = Modifier.weight(1.2f)
         ) {
             ordersState.value =
-                homeViewModel.stateOrders.value.orders.filter { it.userUID == auth.currentUser?.uid && it.type == "Chăm sóc" }
+                homeViewModel.stateOrders.value.orders.filter { it.userUID == auth.currentUser?.uid && it.type == "Dịch vụ" }
             tabButtonState1.value = !tabButtonState1.value
             tabButtonState2.value = !tabButtonState2.value
         }
@@ -110,11 +110,15 @@ fun Orders(
                 productCount = orders.count { it.id == order.id },
                 totalPrice = orders.filter { it.id == order.id }.sumOf { it.costTotal },
                 date = order.date,
-                type = order.type
+                type = order.type,
+                homeViewModel = homeViewModel,
+                productId = order.productId
             ){
-                imageViewModel._stateFloatingButton.value = false
-                imageViewModel._stateOrderDetail.value = homeViewModel.stateOrders.value.orders.first { it == order }
-                navController.navigate(Screen.OrderDetailScreen.route)
+                if(order.type == "Mua hàng"){
+                    imageViewModel._stateFloatingButton.value = false
+                    imageViewModel._stateOrderDetail.value = homeViewModel.stateOrders.value.orders.first { it == order }
+                    navController.navigate(Screen.OrderDetailScreen.route)
+                }
             }
         }
     }
@@ -127,6 +131,8 @@ fun Order(
     totalPrice: Long,
     date: java.util.Date,
     type: String,
+    homeViewModel: HomeViewModel,
+    productId: Int,
     onClick: () -> Unit
 ) {
     Row(
@@ -137,14 +143,24 @@ fun Order(
             .padding(horizontal = 6.dp, vertical = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Column(Modifier.weight(1f)) {
-            Text(text = "Order ID:$id - $type", fontWeight = FontWeight.Bold, fontSize = 23.sp)
-            Text(text = "Số lượng sản phẩm: $productCount", fontSize = 13.sp, color = Color.Gray)
-            Text(text = "Giá tổng: ${ToMoneyFormat.toMoney(totalPrice)}", fontSize = 16.sp, color = Orange)
-            Text(text = "Ngày thanh toán: $date", fontSize = 16.sp, color = primaryColor)
-            Spacer(modifier = Modifier.weight(1f))
-
+        if(type == "Mua hàng"){
+            Column(Modifier.weight(1f)) {
+                Text(text = "Order ID:$id - $type", fontWeight = FontWeight.Bold, fontSize = 23.sp)
+                Text(text = "Số lượng sản phẩm: $productCount", fontSize = 13.sp, color = Color.Gray)
+                Text(text = "Giá tổng: ${ToMoneyFormat.toMoney(totalPrice)}", fontSize = 16.sp, color = Orange)
+                Text(text = "Ngày thanh toán: $date", fontSize = 16.sp, color = primaryColor)
+                Spacer(modifier = Modifier.weight(1f))
+            }
+        } else {
+            Column(Modifier.weight(1f)) {
+                Text(text = "Order ID:$id - $type", fontWeight = FontWeight.Bold, fontSize = 23.sp)
+                Text(text = " ${homeViewModel.stateServices.value.services.first { it.id == productId }.name}", fontSize = 13.sp, color = Color.Gray)
+                Text(text = "Giá tổng: ${ToMoneyFormat.toMoney(totalPrice)}", fontSize = 16.sp, color = Orange)
+                Text(text = "Ngày thanh toán: $date", fontSize = 16.sp, color = primaryColor)
+                Spacer(modifier = Modifier.weight(1f))
+            }
         }
+
     }
 }
 

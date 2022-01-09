@@ -1,5 +1,7 @@
 package com.specikman.petbest.presentation.main_screen.components
 
+import android.content.Context
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -17,16 +19,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import com.google.firebase.auth.FirebaseAuth
 import com.specikman.petbest.common.ToMoneyFormat
 import com.specikman.petbest.domain.model.Service
 import com.specikman.petbest.presentation.main_screen.view_models.HomeViewModel
+import com.specikman.petbest.presentation.navigation.Screen
 import com.specikman.petbest.presentation.ui.theme.Orange
 import com.specikman.petbest.presentation.ui.theme.Shapes
 
 @Composable
 fun PetCare(
-    homeViewModel: HomeViewModel = hiltViewModel()
+    homeViewModel: HomeViewModel = hiltViewModel(),
+    context: Context,
+    navController: NavController
 ) {
 
     if (!homeViewModel.stateServices.value.isLoading) {
@@ -41,9 +47,17 @@ fun PetCare(
                     homeViewModel = homeViewModel,
                     servicesState = servicesState
                 )
-                Services(services = servicesState.value.sortedBy { it.name }, choose = chooseServiceState)
+                Services(
+                    services = servicesState.value.sortedBy { it.name },
+                    choose = chooseServiceState
+                )
                 Description(services = servicesState.value)
-                PetCareFooter(serviceChooseState = chooseServiceState)
+                PetCareFooter(
+                    serviceChooseState = chooseServiceState,
+                    homeViewModel = homeViewModel,
+                    context = context,
+                    navController = navController
+                )
                 Spacer(Modifier.height(80.dp))
             }
         }
@@ -116,14 +130,18 @@ fun PetCareHeader(
 
 @Composable
 fun PetCareFooter(
-    serviceChooseState: MutableState<Service>
+    serviceChooseState: MutableState<Service>,
+    homeViewModel: HomeViewModel,
+    context: Context,
+    navController: NavController
 ) {
+    auth = FirebaseAuth.getInstance()
     Row(
         horizontalArrangement = Arrangement.Center,
         modifier = Modifier.padding(top = 7.dp)
     ) {
         Text(
-            text = "Chi phí dịch vụ ${ToMoneyFormat.toMoney(serviceChooseState.value.price)}đ",
+            text = "Chi phí dịch vụ ${ToMoneyFormat.toMoney(serviceChooseState.value.price)}",
             modifier = Modifier
                 .padding(start = 10.dp, top = 2.dp),
             fontSize = 20.sp,
@@ -141,6 +159,19 @@ fun PetCareFooter(
             .height(44.dp)
     ) {
         TabButton(text = "Tiến hành thanh toán", active = true, modifier = Modifier.weight(1f)) {
+            auth.currentUser?.uid?.let { uid ->
+                com.specikman.petbest.domain.model.Order(
+                    id = homeViewModel.stateOrders.value.orders.size + 1,
+                    productId = serviceChooseState.value.id,
+                    userUID = uid,
+                    costTotal = serviceChooseState.value.price,
+                    type = "Dịch vụ"
+                ).also {
+                    homeViewModel.addOrder(it)
+                }
+                Toast.makeText(context, "Mua dịch vụ thành công", Toast.LENGTH_LONG).show()
+                navController.navigate(Screen.Home.route)
+            }
         }
     }
 }

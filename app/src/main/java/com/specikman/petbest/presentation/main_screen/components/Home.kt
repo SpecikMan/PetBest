@@ -31,6 +31,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberPermissionState
+import com.google.firebase.auth.FirebaseAuth
 import com.specikman.petbest.R
 import com.specikman.petbest.common.ToMoneyFormat
 import com.specikman.petbest.domain.model.Product
@@ -72,7 +73,9 @@ fun HomeScreen(
             contentScale = ContentScale.FillWidth
         )
         Column {
-            AppBar()
+            AppBar(
+                navController = navController
+            )
             Content(
                 navController = navController,
                 imageViewModel = imageViewModel,
@@ -84,6 +87,7 @@ fun HomeScreen(
 
 @Composable
 fun AppBar(
+    navController: NavController
 ) {
 
     val searchValue = remember { mutableStateOf("") }
@@ -113,6 +117,7 @@ fun AppBar(
         )
         Spacer(modifier = Modifier.width(8.dp))
         IconButton(onClick = {
+            navController.navigate(Screen.FavoriteScreen.route)
         }) {
             Icon(
                 imageVector = Icons.Outlined.FavoriteBorder,
@@ -174,6 +179,7 @@ fun Header(
     navController: NavController,
     imageViewModel: ImageViewModel
 ) {
+    auth = FirebaseAuth.getInstance()
     Card(
         Modifier
             .height(64.dp)
@@ -213,12 +219,14 @@ fun Header(
                     )
                 }
             }
-
+            val totalPrice = homeViewModel.stateCarts.value.carts.filter { it.userUID == auth.currentUser?.uid }.sumOf { it.costTotal }
             VerticalDivider()
             Row(Modifier
                 .fillMaxHeight()
                 .weight(1f)
-                .clickable { }
+                .clickable {
+                    navController.navigate(Screen.CartScreen.route)
+                }
                 .padding(horizontal = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -228,7 +236,7 @@ fun Header(
                     tint = MaterialTheme.colors.primary
                 )
                 Column(Modifier.padding(8.dp)) {
-                    Text(text = "320.000đ", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                    Text(text = ToMoneyFormat.toMoney(totalPrice), fontWeight = FontWeight.Bold, fontSize = 13.sp)
                     Text(text = "Chi phí giỏ hàng", color = Color.LightGray, fontSize = 12.sp)
                 }
             }

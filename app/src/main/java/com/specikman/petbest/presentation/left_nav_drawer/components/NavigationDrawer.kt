@@ -1,5 +1,7 @@
 package com.specikman.petbest.presentation.left_nav_drawer.components
 
+import android.content.Context
+import android.widget.Toast
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.MaterialTheme
@@ -13,10 +15,19 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import com.google.firebase.auth.FirebaseAuth
+import com.jakewharton.processphoenix.ProcessPhoenix
 import com.specikman.petbest.R
 
+
 @Composable
-fun NavigationDrawer() {
+fun NavigationDrawer(
+    navController: NavController,
+    context: Context
+) {
+    val auth: FirebaseAuth = FirebaseAuth.getInstance()
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -34,12 +45,19 @@ fun NavigationDrawer() {
         NavigationItem(
             resId = R.drawable.ic_baseline_history_24,
             text = "Lịch sử"
-        ) {}
+        ) {
+            Toast.makeText(context, "Clicked",Toast.LENGTH_LONG).show()
+            auth.signOut()
+            ProcessPhoenix.triggerRebirth(context)
+        }
 
         Row(
             modifier = Modifier
                 .padding(start = 50.dp, bottom = 87.dp)
-                .fillMaxHeight(),
+                .fillMaxHeight()
+                .clickable {
+
+                },
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.Bottom
         ) {

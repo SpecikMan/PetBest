@@ -15,4 +15,6 @@ sealed class Screen(val route : String) {
     object PetCareScreen: Screen("pet_care_screen")
     object OrderDetailScreen: Screen("pet_care_detail_screen")
     object SplashScreen: Screen("splash_screen")
+    object FavoriteScreen: Screen("favorite_screen")
+    object SettingScreen: Screen("setting")
 }

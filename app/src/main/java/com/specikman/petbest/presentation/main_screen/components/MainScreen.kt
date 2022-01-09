@@ -10,9 +10,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.FloatingActionButton
-import androidx.compose.material.Icon
-import androidx.compose.material.Scaffold
+import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.*
@@ -47,14 +45,13 @@ fun MainScreen(
     var navigateClick by remember { mutableStateOf(false) }
     val offSetAnim by animateDpAsState(targetValue = if (navigateClick) 240.dp else 0.dp)
     val scaleAnim by animateFloatAsState(targetValue = if (navigateClick) 0.7f else 1.0f)
-    NavigationDrawer()
     Column(
         modifier = Modifier
             .pointerInput(Unit) {
                 detectDragGestures { change, dragAmount ->
                     change.consumeAllChanges()
                     when {
-                        dragAmount.x < 0 -> navigateClick = !navigateClick
+                        //dragAmount.x < 0 -> navigateClick = !navigateClick
                     }
                 }
             }
@@ -69,11 +66,6 @@ fun MainScreen(
             bottomBar = {
                 BottomNavBar(
                     items = listOf(
-                        BottomNavItem(
-                            name = "Menu",
-                            route = "menu",
-                            icon = Icons.Default.ArrowBack
-                        ),
                         BottomNavItem(
                             name = "Trang chủ",
                             route = Screen.Home.route,
@@ -93,17 +85,17 @@ fun MainScreen(
                             name = "Dịch vụ khác",
                             route = Screen.PetCareScreen.route,
                             icon = Icons.Default.Pets
+                        ),
+                        BottomNavItem(
+                            name = "Hệ thống",
+                            route = Screen.SettingScreen.route,
+                            icon = Icons.Default.Settings
                         )
                     ),
                     navController = navControllerM,
                     onItemClick = {
-                        if (it.name == "Menu") {
-                            navigateClick = !navigateClick
-                        } else{
-                            imageViewModel._stateFloatingButton.value = true
-                            navControllerM.navigate(it.route)
-                        }
-
+                        imageViewModel._stateFloatingButton.value = true
+                        navControllerM.navigate(it.route)
                     },
                 )
             },
@@ -124,7 +116,8 @@ fun MainScreen(
                 } else {
                     FloatingActionButton(onClick = {
                         imageViewModel._stateFloatingButton.value = true
-                        navControllerM.popBackStack() },
+                        navControllerM.popBackStack()
+                    },
                         backgroundColor = Orange,
                         content = {
                             Icon(
@@ -133,9 +126,13 @@ fun MainScreen(
                             )
                         })
                 }
-            }
+            },
         ) {
-            NavigationMain(navController = navControllerM, context = context, viewModel = imageViewModel)
+            NavigationMain(
+                navController = navControllerM,
+                context = context,
+                viewModel = imageViewModel
+            )
         }
     }
 }

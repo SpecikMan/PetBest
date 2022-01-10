@@ -6,5 +6,5 @@ data class User(
     val email : String = "",
     var phone: String = "",
     var creditCard: String = "",
-    val balance: Long = 0
+    var balance: Long = 0
 )

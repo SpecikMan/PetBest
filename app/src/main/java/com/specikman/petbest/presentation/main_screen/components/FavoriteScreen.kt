@@ -23,7 +23,6 @@ fun FavoriteScreen(
     navController: NavController
 ) {
     LazyColumn(
-        Modifier.padding(16.dp)
     ){
         item{
             if(!homeViewModel.stateProducts.value.isLoading){
@@ -42,7 +41,8 @@ fun FavoriteScreen(
 @Composable
 fun FavoriteHeader() {
     Row(
-        horizontalArrangement = Arrangement.Center
+        horizontalArrangement = Arrangement.Center,
+         modifier = Modifier.padding(start = 16.dp, top = 16.dp)
     ) {
         Text(text = "Sản phẩm yêu thích", fontSize = 30.sp, fontWeight = FontWeight.Bold)
     }

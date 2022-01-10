@@ -75,7 +75,9 @@ fun HomeScreen(
         )
         Column {
             AppBar(
-                navController = navController
+                navController = navController,
+                homeViewModel = homeViewModel,
+                imageViewModel = imageViewModel
             )
             Content(
                 navController = navController,
@@ -88,7 +90,9 @@ fun HomeScreen(
 
 @Composable
 fun AppBar(
-    navController: NavController
+    navController: NavController,
+    imageViewModel: ImageViewModel,
+    homeViewModel: HomeViewModel
 ) {
 
     val searchValue = remember { mutableStateOf("") }
@@ -105,7 +109,10 @@ fun AppBar(
             onValueChange = { searchValue.value = it },
             label = { Text(text = "Tìm kiếm", fontSize = 9.sp) },
             singleLine = true,
-            leadingIcon = { Icon(imageVector = Icons.Rounded.Search, contentDescription = "") },
+            leadingIcon = { Icon(imageVector = Icons.Rounded.Search, contentDescription = "", modifier = Modifier.clickable {
+                imageViewModel._stateShowProduct.value = homeViewModel.stateProducts.value.products.filter { it.name == searchValue.value }
+                navController.navigate(Screen.AllProducts.route)
+            }) },
             colors = TextFieldDefaults.textFieldColors(
                 backgroundColor = Color.White,
                 focusedIndicatorColor = Color.Transparent,
@@ -122,13 +129,6 @@ fun AppBar(
         }) {
             Icon(
                 imageVector = Icons.Outlined.FavoriteBorder,
-                contentDescription = "",
-                tint = Color.White
-            )
-        }
-        IconButton(onClick = {}) {
-            Icon(
-                imageVector = Icons.Outlined.Notifications,
                 contentDescription = "",
                 tint = Color.White
             )
@@ -214,7 +214,9 @@ fun Header(
                     )
                     val auth = FirebaseAuth.getInstance()
                     val user = homeViewModel.stateUsers.value.users.first { it.uid == auth.currentUser?.uid }
-                    Column(Modifier.padding(8.dp)) {
+                    Column(Modifier.padding(8.dp).clickable {
+                        navController.navigate(Screen.TransferMoney.route)
+                    }) {
                         Text(text = ToMoneyFormat.toMoney(user.balance), fontWeight = FontWeight.Bold, fontSize = 13.sp)
                         Text(
                             text = "Tiền trong tài khoản",

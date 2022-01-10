@@ -1,6 +1,5 @@
 package com.specikman.petbest.presentation.main_screen.view_models
 
-import android.telephony.ServiceState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
@@ -20,7 +19,6 @@ import com.specikman.petbest.domain.use_case.product_use_cases.favorite.AddFavor
 import com.specikman.petbest.domain.use_case.product_use_cases.favorite.GetFavoriteUseCase
 import com.specikman.petbest.domain.use_case.product_use_cases.get_products.GetBestSellerProductsUseCase
 import com.specikman.petbest.domain.use_case.product_use_cases.get_products.GetMostDiscountProductsUseCase
-import com.specikman.petbest.domain.use_case.product_use_cases.get_products.GetProductImagesFromStorageUseCase
 import com.specikman.petbest.domain.use_case.product_use_cases.get_products.GetProductsUseCase
 import com.specikman.petbest.domain.use_case.user_use_cases.GetUsersUseCase
 import com.specikman.petbest.domain.use_case.user_use_cases.UpdateUserUseCase

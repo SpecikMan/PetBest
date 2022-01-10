@@ -33,7 +33,7 @@ fun NavigationMain(navController: NavHostController, context: Context, viewModel
             QRScanner(context = context, navController = navController, imageViewModel = viewModel)
         }
         composable(route = Screen.CartScreen.route) {
-            Cart(imageViewModel = viewModel)
+            Cart(imageViewModel = viewModel, navController = navController)
         }
         composable(route = Screen.OrderScreen.route){
             OrderScreen(imageViewModel = viewModel, navController = navController)
@@ -55,6 +55,9 @@ fun NavigationMain(navController: NavHostController, context: Context, viewModel
         }
         composable(route = Screen.HistoryScreen.route){
             HistoryScreen(imageViewModel = viewModel , navController = navController)
+        }
+        composable(route = Screen.TransferMoney.route){
+            TransferMoneyScreen(context = context)
         }
     }
 }

@@ -25,6 +25,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import com.google.firebase.auth.FirebaseAuth
 import com.specikman.petbest.R
 import com.specikman.petbest.common.QRGenerator
@@ -35,6 +36,7 @@ import com.specikman.petbest.domain.model.Product
 import com.specikman.petbest.presentation.main_screen.state.CartsState
 import com.specikman.petbest.presentation.main_screen.view_models.HomeViewModel
 import com.specikman.petbest.presentation.main_screen.view_models.ImageViewModel
+import com.specikman.petbest.presentation.navigation.Screen
 import com.specikman.petbest.presentation.ui.theme.Orange
 import com.specikman.petbest.presentation.ui.theme.Shapes
 import com.specikman.petbest.presentation.ui.theme.primaryColor
@@ -44,6 +46,7 @@ import kotlinx.coroutines.flow.merge
 fun Cart(
     imageViewModel: ImageViewModel,
     homeViewModel: HomeViewModel = hiltViewModel(),
+    navController: NavController
 ) {
     val auth = FirebaseAuth.getInstance()
     if (!homeViewModel.stateCarts.value.isLoading && !homeViewModel.stateProducts.value.isLoading) {
@@ -67,7 +70,8 @@ fun Cart(
                     homeViewModel = homeViewModel,
                     totalPrice = totalPrice,
                     qrState = qrState,
-                    carts = cartsState.value
+                    carts = cartsState.value,
+                    navController = navController
                 )
             }
         }
@@ -89,7 +93,8 @@ fun Footer(
     homeViewModel: HomeViewModel,
     totalPrice: MutableState<Long>,
     qrState: MutableState<Boolean>,
-    carts: List<Cart>
+    carts: List<Cart>,
+    navController: NavController
 ) {
     val chooseState1 = remember { mutableStateOf(true) }
     val chooseState2 = remember { mutableStateOf(false) }
@@ -179,6 +184,7 @@ fun Footer(
                     homeViewModel.addOrder(it)
                 }
                 homeViewModel.deleteCart(cart)
+                navController.navigate(Screen.Home.route)
             }
         }
     }

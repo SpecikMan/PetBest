@@ -70,7 +70,11 @@ fun SettingContent(
         Text(text = "Lịch sử", fontSize = 20.sp, fontWeight = FontWeight.Bold)
     }
     Spacer(modifier = Modifier.height(15.dp))
-    Row() {
+    Row(
+        modifier = Modifier.clickable {
+            navController.navigate(Screen.TransferMoney.route)
+        }
+    ) {
         Icon(imageVector = Icons.Default.Payment, contentDescription = null)
         Spacer(modifier = Modifier.width(15.dp))
         Text(text = "Chuyển tiền từ thẻ ghi nợ vào tài khoản", fontSize = 20.sp, fontWeight = FontWeight.Bold)
